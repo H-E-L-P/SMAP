@@ -1,0 +1,1 @@
+/home/viero/lss_14/spt/make_sourcelists_w_smap_pipeline_spt.pro

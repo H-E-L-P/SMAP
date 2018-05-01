@@ -1,0 +1,41 @@
+  XImage_Support help page
+
+
+  GENERAL DESCRIPTION
+
+  The XImage_Support widget modifies the support of the input
+  image by either applying a circular mask centered on the
+  image maximum or extracting the principal connected component,
+  i.e. the set of pixels above a pre-fixed intensity threshold
+  and connected by a path to the maximum intensity pixel.
+    
+ 
+ 
+  PARAMETERS
+
+  'Circular mask radius':
+      Mask radius in pixel units.
+
+  'Threshold for principal component extraction':
+      Threshold representing the lower value to identify the region
+      of pixels connected by a path to the maximum intensity pixel.
+
+
+
+  CONTROLS/BUTTONS
+
+  'Processing...':
+      Apply the currently defined options to the input image.
+      Whenever the 'Processing...' button is pressed, the previous
+      result is overwritten by the input image and the processing
+      is performed with the current options. The result of the
+      last processing is returned on output.
+
+  'Display Options':
+      Modify the display options of the displayed image.
+
+  'Help':
+      Display this help page.
+
+  'Exit':
+      Quit XImage_Support.

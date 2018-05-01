@@ -1,0 +1,340 @@
+StarFinder v 1.6a: list of modules
+
+
+
+ADD_OVERLAP
+Find and add the overlap region of two 2D arrays.
+
+AIRY_PATTERN
+Compute an Airy pattern.
+
+ALL_MAX
+Find relative maxima in a 2D array.
+
+ANGLE
+Compute the position angles of a set of points on a plane.
+
+ARRAY_OVERLAP
+Find bounds of overlap region of two 2D arrays.
+
+ARRAY_PARTITION
+Define bounds to partition an array into a pre-fixed
+number of parts along one dimension.
+
+B_SPLINES
+Compute the 1-D observation matrix to determine the
+coefficients of an interpolating spline in the B-splines
+representation.
+
+BINARY_ARRAY
+Transform a 2D array to binary by thresholding.
+
+CENTER_ARRAY
+Shift a 2D array in order to put its maximum at a given
+specified position.
+
+CENTROID
+Compute the centroid of a 2D array.
+
+CENTROIDER
+Sub-pixel centering of an image by iterative fractional
+shift.
+
+CHECK_BORDER
+Check overlapping region of two 2D arrays.
+
+CIRC_MASK
+Apply a circular mask to a 2D array.
+
+CLICK_ON_MAX
+Select local maxima in an image by mouse click.
+
+COMPARE_LISTS
+Find coincidences between two sets of points on a plane.
+
+CONVERGENCE
+Check convergence condition between two variables.
+
+COORD_TO_SUBS
+Convert pixel coordinates in a 2D array to subscripts.
+
+CORRELATION_COEFF
+Compute the correlation coefficient of two 2D patterns.
+
+CORRELATE_MAX
+Estimate the position of a feature in an image by
+maximizing its correlation with a reference template.
+
+CROSSES
+Mark interesting points in an image with crosses.
+
+DEFAULT_DISPLAY_OPT
+Define default options to display a 2D image.
+
+DIAG_MULT
+Multiply a square array by a diagonal matrix.
+
+DISPLAY_IMAGE
+Display a 2D image according to a set of options.
+
+DISTANCE
+Compute the euclidean distance of a set of points on a
+plane from an origin.
+
+ESTIMATE_BACKGROUND
+Estimate the background emission in an image by means
+of IMAGE_BACKGROUND or MEDIAN_FILTER.
+
+EXTEND_ARRAY
+Pad 2D array with 0s.
+
+EXTEND_SHIFT
+Shift a 2D array without edge effects.
+
+EXTRACT_OVERLAP
+Extract the overlap region of two 2D arrays.
+
+FILE_NAME
+Return the complete name of a file in a directory
+whose path is among the IDL search paths.
+Operating system dependencies are taken into account.
+
+FIND_ROT_TRANS
+Find translation and rotation angle between two reference
+frames, given the coordinates of a set of points in the
+two reference frames.
+
+FITSTARS
+Multi-component PSF-fitting of one or more stellar images.
+
+FITTING_ERRORS
+Estimate formal errors on the solution of a linear
+algebraic system.
+
+FREQUENCY
+Compute a 1D vector of Fourier frequencies.
+
+FWHM
+Compute the FWHM of a peak in an image.
+
+GAUSS_NOISE_STD
+Compute standard deviation of normally distributed
+noise in an image.
+
+GAUSSIAN2D
+Compute bivariate gaussian function.
+
+GET_MAX
+Find coordinates of maximum intensity pixel in a
+2D array.
+
+GINV
+Compute the Moore-Penrose generalized inverse of a
+rectangular matrix.
+
+HALO_SMOOTH
+Smooth the halo of a stellar image by means of a
+variable box size median filtering technique.
+
+HISTO
+Compute histogram.
+
+HISTO_HWHM
+Compute the Half Width at Half Maximum of an histogram.
+
+IMAGE_BACKGROUND
+Compute the background emission in a given image.
+
+IMAGE_CORE
+Identify the component connected to a specified
+starting position and above a pre-fixed threshold
+in a 2D array.
+
+IMAGE_MODEL
+Create a synthetic image given by a sum of shifted
+scaled replicas of a given template.
+
+IMAGE_SHIFT
+Apply a fractional shift to an image by interpolation.
+
+INSTR_NOISE
+Evaluate overall standard deviation due to normally
+distributed noise sources in an image.
+
+LOG2
+Compute the base 2 logarithm of an integer number.
+
+LS_SYS
+Put a linear algebraic system into normal form.
+
+MATCH_COORD
+Given two sets of coordinates on a plane, representing
+the same points in reciprocally translated and rotated
+reference frames, map one of them onto the other.
+
+MAX_SEARCH
+Identify relative maxima in a 2D array, according to a
+specified set of options.
+
+MEDIAN_FILTER
+Extension of the IDL function MEDIAN: apply median
+smoothing to a 2D array, using a reduced box size at the
+array edge.
+
+MIN_NORM_INVERSION
+Compute the minimum norm solution of an algebraic system
+of linear equations.
+
+NEWTON_GAUSS
+Fit a set of data with a parametric model.
+
+PEAK_AREA
+Estimate the area of a peak in an image.
+
+PEAK_FWHM
+Compute the FWHM of a peak in an image.
+
+PEAK_WIDTH
+Estimate the width of a peak in an image.
+
+PHASE2D
+Compute the phase array for a 2D delta-function.
+
+PHOTON_NOISE
+Evaluate photon noise standard deviation in an image.
+
+PICK_REGION
+Given a partition of a planar domain, find the
+sub-region containing an assigned point.
+
+PLANE
+Compute a plane surface.
+
+PSF_EXTRACT
+Estimate the PSF in a stellar field image by combination
+of a stack of stars.
+
+RADIAL_DIST
+Compute a 2D array of radial distances from an origin.
+
+READ_FLOAT_DATA
+Read a Free Format file containing floating-point
+numbers, ordered by columns.
+
+RECIPROCAL_DISTANCE
+Compute the euclidean distance for each couple of
+points in a set of given points on a plane.
+
+RELATIVE_ERROR
+Compute the relative error between two variables.
+
+REMOVE_COINCIDENT
+Remove multiple occurences from a set of points on
+a plane.
+
+REPAIR_SATURATED
+Repair saturated stars in an stellar field image.
+
+REPLACE_PIX
+Replace known bad pixels in a 2D array by local median.
+
+RESAMPLE
+Resample a bivariate function defined on a rectangular
+domain by integrating it over square regions.
+
+ROT_TRANS
+Rotate and translate a set of points on a plane.
+
+SAMPLING_GRID
+Define a set of equally-spaced points along an axis.
+
+SCALE_LS_SYS
+Scale a linear system of normal equations to improve
+the eigenvalue ratio.
+
+SEARCH_OBJECTS
+Search meaningful maxima in a given image.
+
+SHIFTED_TEMPLATES
+Shift a template image by an integer multiple of a
+pre-fixed sub-pixel shift.
+
+SIMPSON_PIX_INTEGRAL
+Resample a bivariate function defined on a rectangular
+domain by integration over square regions with the
+Simpson rule.
+
+SIZE52
+Alias of IDL 5.2 intrinsic SIZE function for previous
+versions.
+
+SPLINE_COEFF
+Compute the coefficients of the interpolating spline
+to a set of observations on a rectangular grid.
+
+SPLINE_INTERP
+Evaluate a spline function on a rectangular grid.
+
+STACK_COMBINE
+Combine frames in a 3D stack.
+
+STARFINDER
+Stars detection, astrometry and photometry in a
+stellar field.
+
+SUB_ARRAY
+Extract sub-array from a 2D array.
+
+SUB_ARRAYS
+Given a 2D array, extract a stack of sub-arrays
+centered at specified positions.
+
+SUBS_TO_COORD
+Convert vector of array subscripts to pixel coordinates.
+
+SUPERPOSE_STARS
+Compute stack median of a set of stars in an image.
+
+SVPSF_EXTRACT
+Partition an image into a grid of sub-regions and extract 
+a local PSF estimate for each region.
+
+XCOMPARE_LISTS
+Compare two lists of objects. Widget interface.
+
+XDISPFILE
+Read an ASCII file and display its content on a text widget.
+
+XDISPLAYOPT
+Modify the display options of an image. Widget interface.
+
+XIMAGE_SUPPORT
+Modify the support of an image. Widget interface.
+
+XMATCH_COORD
+Widget interface for the MATCH_COORD procedure.
+
+XNOISE
+Widget application to compute the noise standard
+deviation for each pixel in a given image.
+
+XNOISE_STDEV
+Widget interface for the GAUSS_NOISE_STD procedure.
+
+XPLOT
+Execute simple plots. Widget interface.
+
+XPSF_EXTRACT
+Widget interface for the PSF_EXTRACT procedure.
+
+XPSF_SMOOTH
+Widget interface for the HALO_SMOOTH function.
+
+XREPLACE_PIX
+Widget interface for the REPLACE_PIX function.
+
+XSTARFINDER
+Package for stellar fields analysis. Widget interface.
+
+XSTARFINDER_RUN
+Widget interface for the STARFINDER procedure.

@@ -1,0 +1,112 @@
+  XNoise help page
+
+
+
+  GENERAL DESCRIPTION
+
+  The XNoise widget computes the noise standard deviation for
+  each pixel of a given image.
+  The input image is assumed to be the sum or the mean of a
+  set of equally exposed frames. The output is a noise array.
+  The overall variance of the noise is the sum of two terms:
+  - Gaussian noise, due to the following sources:
+    1) read-out
+    2) dark current
+    3) thermal background
+    4) sky
+  - Photon noise, associated to the 'astronomical' signal.
+  Noise source 1) follows a gaussian distribution of 0 mean.
+  Noise sources 2), 3) and 4) strictly follow a Poisson
+  distribution, but since they may be often considered roughly
+  constant over the frame, the Poisson distribution can be
+  approximated by a gaussian one, spatially uniform across the
+  frame itself. While noise source 1) introduces no bias in the
+  recorded signal, sources 2), 3) and 4) have nonzero mean.
+  In general the mean dark current level, the overall thermal
+  background and the mean sky are subtracted in the pre-
+  processing phase, so their contribution to the noise cannot
+  be estimated from the residual signal: this is the reason
+  why the corresponding noise levels should be supplied by
+  the user.
+  Optionally the gaussian noise can be estimated automatically
+  by means of a secondary widget, named XNoise_StDev. The
+  result is generally over-estimated and represents the overall
+  effect of noise sources 1)-4) combined with the (photon) noise
+  associated to the diffuse emission originated by nebulosities,
+  bright stars haloes and diffuse light from faint unresolved
+  sources.
+  The photon noise on the 'astronomical' signal is considered
+  proportional to the square root of the recorded signal in each
+  pixel.
+  The XNoise widget can be used in either of the following two
+  'meaningful' modes:
+  - compute the overall noise per pixel, considering both the
+    contribution of sources 1)-4) and of photon noise;
+  - estimate the gaussian noise only by means of XNoise_StDev:
+    this is the suggested mode for very crowded fields when no
+    knowledge on sources 1)-4) is available.
+    
+ 
+ 
+  PARAMETERS
+
+  'Evaluate from data':
+      Select 'yes' to estimate the gaussian noise standard
+      deviation by means of XNoise_StDev.
+      The retrieved value is generally over-estimated, especially
+      in very crowded fields.
+
+  'Read-out-noise':
+      Read-out-noise for a single exposure.
+
+  'Dark current':
+      Dark current level for a single exposure. If the Poisson
+      noise is considered and the dark current has not been
+      subtracted (a rather unlikely situation!), this field should
+      be set to 0, because the dark current noise is accounted
+      for as Poisson noise.
+
+  'Thermal background':
+      Instrumental background for a single eexposure. If the
+      Poisson noise is considered and the thermal background
+      has not been removed, this field should be set to 0,
+      because the thermal noise is accounted for as Poisson noise.
+
+  'Sky':
+      Mean sky level for a single eexposure. If the Poisson noise
+      is considered and the sky has not been removed, this field
+      should be set to 0: the associated noise is accounted for
+      as Poisson noise.
+
+  'Consider photon noise':
+      Select 'yes' to consider the effects of both gaussian and
+      photon noise.
+
+  'Number of exposures':
+      Number of equally-exposed frames which have been combined
+      to form the input image.
+
+  'Exposures combined by':
+      Select 'mean' or 'sum' to specify how the individual exposures
+      have been combined. This will affect noise propagation from
+      each single frame to the final image.
+
+  'Electrons/ADU':
+      Number of electrons per ADU.
+
+
+
+  CONTROLS/BUTTONS
+
+  'Compute':
+      Press this button to compute the noise array using the current
+      set of parameters.
+
+  'Save':
+      Save to a FITS file the noise array.
+
+  'Help':
+      Display this help page.
+
+  'Exit':
+      Quit XNoise.

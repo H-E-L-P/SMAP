@@ -1,0 +1,32 @@
+  'PSF' menu help page
+
+
+  The 'PSF' menu contains the following sub-menus:
+
+  'Load':
+      Load a PSF array from a FITS file.
+
+  'Extract from image':
+      Extract the PSF from the stellar field image, by superposition
+      of a set of user-selected stars (referred to as 'PSF stars').
+
+  'Repeat extraction':
+      An accurate PSF estimation requires a good knowledge of the
+      background emission and of the secondary sources which
+      contaminate the 'PSF stars'. Better estimates of these quantities
+      are available after having analyzed the stellar field image with
+      the algorithm for stars detection, astrometry and photometry.
+      The 'Repeat extraction' sub-menu allows the user to repeat
+      the PSF extraction procedure after analyzing the field.
+ 
+  'Post process':
+      Modify the support of the retrieved PSF and smooth the PSF halo.
+
+  'Normalize':
+      Normalize the PSF array to total flux = 1. This task may be useful
+      to normalize an external PSF, loaded from a file. Notice that the
+      PSF loaded, extracted or processed within XStarFinder is always 
+      normalized automatically.
+
+  'Save':
+      Save to a FITS file the current estimate of the PSF.

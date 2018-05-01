@@ -1,0 +1,69 @@
+  XCompare_Lists help page
+
+
+
+  GENERAL DESCRIPTION
+
+  The XCompare_Lists widget compares two lists of stars,
+  resulting for instance from the analysis of two images of
+  the same field observed at different wavelenghts.
+  In general the two frames are translated and rotated one
+  another: the proper transformation must be determined, in
+  order to map one set of coordinates onto the other.
+  After matching the reference frames, the common points
+  can be found.
+  The input lists of stars must have the same format as the
+  outputs produced by XStarFinder_Run; the data must be
+  stored on rows of 7 columns each, in the following order:
+
+  x  y  flux  sigma_x  sigma_y  sigma_flux  correlation
+
+  The reference list used to match the reference frames (see
+  the 'File' menu below) must contain only the coordinates
+  of the reference stars, in the following order:
+
+  x  y
+
+
+
+  CONTROLS/BUTTONS
+
+  'File':
+      The 'File' pull-down menu includes two sub-menus for
+      lists input/output.
+      The 'Load' sub-menu allows the user to read
+      - the lists to compare, named List 1 and List 2;
+      - a reference list (coordinates only!), containing a subset
+        of the objects in List 1, which is used to find the
+        coordinate transformation between the two reference frames.
+      The 'Save' sub-menu allows the user to save the processed
+      Lists 1 and 2, either after matching the reference frames
+      or after finding the common objects.
+ 
+  'Match coordinates':
+      Find the optimal transformation to map coordinates of
+      List 2 onto the reference frame of List 1. This is done
+      by the widget application XMatch_Coord.
+
+  'Find coincident':
+      Find coincident points in the two lists. The user is
+      requested to supply a 'matching distance', which
+      represents a tolerance to identify coincident points.
+
+  'Color Magnitude Diagram':
+      Create a simple color-magnitude diagram, plotting Mag1
+      on the vertical axis vs. (Mag1 - Mag2) on the horizontal
+      axis, where Mag1 and Mag2 are the magnitudes of the
+      stars in Lists 1 and 2 respectively. Magnitudes are
+      defined as
+      Mag = -2.5 * Log10(Flux);
+      the user is requested to enter a zero-point for the
+      magnitude scale.
+      The plot is created by means of the XPlot widget
+      application and can be saved as a PostScript file.
+
+  'Help':
+      Display this help page.
+
+  'Exit':
+      Quit XCompare_Lists.

@@ -1,0 +1,16 @@
+  'Display' menu help page
+
+
+  The 'Display' menu contains the following sub-menus:
+
+  'Select data':
+      Select the data array to display (image, PSF, background,
+      detected stars, synthetic field, other files).
+
+  'Options':
+      Modify the display options of the currently displayed data
+      array. If the displayed array is a 'global variable' (image,
+      PSF, background, detected stars, synthetic field), the new
+      display options become the current options for the array
+      itself.
+ 

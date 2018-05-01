@@ -1,0 +1,160 @@
+  XSTARFINDER - v1.6b
+
+
+
+  1) GENERAL DESCRIPTION.
+
+  XStarFinder is a general purpose astrometry and photometry
+  toolkit for crowded stellar fields analysis.
+  It has been designed for well-sampled high and low Strehl
+  images. The current version considers the PSF constant over
+  the field of view; a method to handle anisoplanatic effects
+  in wide-field Adaptive Optics observations is under
+  development.
+
+
+
+  2) MAIN MENU DESCRIPTION.
+
+  The controls in the main menu are:
+
+  'Image' pull-down menu:
+      Load image from FITS file, display it and perform basic
+      operations (compute standard deviation of gaussian noise,
+      repair bad pixels, select reference sources by mouse click).
+      Save by-products of the analysis (e.g. image after repair
+      of saturated stars, synthetic field, background estimate,
+      etc.).
+
+  'PSF' pull-down menu:
+      Load PSF from FITS file or extract it directly from the
+      image. The PSF extraction task allows the user to repair
+      the saturated stars in the input image.
+      The 'PSF' pull-down menu includes tasks for basic post-
+      processing of the extracted PSF (e.g. support masking,
+      halo smoothing, normalization) and allows one to save
+      the retrieved estimate of the PSF.
+
+  'Astrometry and Photometry' button:
+      Detect stars in the input image, performing astrometry and
+      photometry. The PSF, either load from a file or extracted
+      from the image, is used as a rigid template which may be
+      shifted and scaled to match other objects in the field.
+      The list of detected stars can be saved to an ASCII file.
+
+  'Compare Lists' button:
+      Compare two data sets representing the results obtained
+      on different images of the same field (e.g. in different
+      filters) and create a simple color-magnitude diagram.
+      The data sets are supposed to be reciprocally translated
+      and rotated. The plotted diagram can be saved as
+      PostScript file.
+
+  'Display' pull-down menu:
+      Define display options (intensity range, stretch, chopping
+      threshold, color table) for the currently displayed image.
+
+  'Session' pull-down menu:
+      Save current session or restore a previously saved one.
+
+  'Help' button:
+      Display this help file. Notice that every secondary widget
+      application is provided with its own help page.
+
+  'Quit' button:
+      Exit XStarFinder.
+
+
+
+  3) NOTES ON VARIABLES.
+
+  XStarFinder is a compound application. The main widget which
+  appears on the screen (called XStarFinder) is nothing more than
+  an interface allowing the user to call different widget-based
+  applications, in order to perform various operations on the
+  stellar field image.
+  The main widget defines a memory area to store some 'global'
+  variables, namely
+  - image: the stellar field
+  - PSF: array containing an image of the Point Spread Function
+  - noise: array, with the same size as the image, containing the
+       noise standard deviation for each image pixel
+  - background: array, with the same size as the image, with an
+       estimate of the background emission. Available after PSF
+       extraction or stellar field analysis
+  - detected stars: synthetic image, containing one replica of the
+       PSF for each detected star in the field. Available after
+       stars detection
+  - synthetic field: sum of background array and detected stars
+  - list of detected stars: positions, fluxes, formal errors and
+       correlation coefficients. Available after stars detection
+  - other data and parameters.
+  The global variables are maintained and modified in the course
+  of the current session. As one of these variables is processed
+  by some application, its previous value is overwritten: if the
+  user wishes to keep track of the values assumed by the variable
+  in the course of the session, he/she should save the variable
+  itself or the entire session whenever necessary.
+  All the global data are basically divided into two groups:
+  those associated to the image (image, background, noise array,
+  stellar field model, list of detected stars, ...) and those
+  associated to the PSF (PSF array, coordinates of stars selected
+  by the user to form the PSF, ...). Whenever the user loads a new
+  image or a new PSF, all the associated data are erased, to avoid
+  'mixing' different data. The only exception is represented by
+  the default parameters of the secondary widgets applications
+  (see below): in this case the user selected parameters are saved.
+  Every secondary widget application has a set of default
+  parameters, which can be modified interactively by the user.
+  The user-defined values become the new default values of the
+  widget's set of parameters until the user quits XStarFinder
+  without saving the current session. This feature may help the
+  user to analyze two images of the same field. Of course, if the
+  observations were taken at different wavelengths, all the
+  'structural' parameters (e.g. those related to the PSF FWHM,
+  as the box size for PSF extraction) must be scaled properly.
+  Nevertheless, saving the user-defined values of the widgets'
+  parameters might be tricky in some situations, for instance
+  when two images of different targets and/or in different
+  observing conditions are analyzed in sequence. In these cases
+  it is recommended to close the current XStarFinder session
+  and open a new one, in order to restore the default values of
+  the parameters.
+
+ 
+
+  4) NOTES ON INPUT/OUTPUT.
+
+  XStarFinder can load/save images from/to FITS files. Every
+  output FITS file has the same header as the corresponding input
+  file. A minimal default header is written when the saved item
+  has no corresponding input (e.g. the PSF when it is extracted
+  from the stellar field).
+  It is strongly recommended to avoid overwriting existing FITS
+  files, to avoid losing important header information.
+
+ 
+
+  5) MODIFICATIONS.
+  
+  * PSF extraction
+    The task "Repeat PSF extraction" has been removed. Now, in order 
+    to repeat the PSF estimation, the normal task "Extract from image" 
+    has to be used instead. This allows greater flexibility in the 
+    selection of the parameters. 
+    The possibility to select by mouse-click the contaminating sources 
+    around the candidate stars for PSF estimation has been removed. 
+
+  * Astrometry/Photometry
+    The "Deblend" option has been removed.
+    The minimum acceptable distance between any two acceptable stars 
+    (this parameter is coded in the STARFINDER.PRO module) has now 
+    been set to 1 FWHM of the PSF (it was 0.5 FWHM before).
+
+  * Background
+    After the first image analysis by XStarFinder_Run, the background 
+    is estimated as a median-filtered version of the residual image 
+    (data - found stars). This background estimate is then used in 
+    further PSF estimation (in previous versions the background was 
+    computed by the PSF extraction task each time, withouth accounting 
+    for the detected stars).

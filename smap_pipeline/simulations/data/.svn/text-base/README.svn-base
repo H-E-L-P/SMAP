@@ -1,0 +1,9 @@
+ias_cold.fits and ias_starburst.fits are the cold and starburst
+templates from Lagach, Dole, and Puget 2004.
+
+bethermin_dNdLogLdzdOmega.fits is an input to the Bethermin
+model simulators.
+
+The *_lensing_prob.sav files are lensing models from Matthieu
+ (Bethermin) and Francesco (De Bernardis; this is the one from
+ the Irvine group).

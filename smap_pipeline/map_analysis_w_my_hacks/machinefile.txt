@@ -1,0 +1,9 @@
+spire0:1
+spire1:1
+spire2:1
+spire3:1
+spire5:1
+spire6:1
+spire7:1
+spire8:1
+

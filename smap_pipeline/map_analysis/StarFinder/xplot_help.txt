@@ -1,0 +1,60 @@
+  XPlot help page
+
+
+
+  GENERAL DESCRIPTION
+
+  The XPlot widget plots a vector Y (vertical axis) vs. a vector
+  X (horizontal axis). It can optionally overplot up to two vectors
+  Y1 and Y2.
+    
+ 
+ 
+  PARAMETERS
+
+  'X lower', 'X upper':
+      Lower and upper values for horizontal axis. Notice that
+      X_upper can be smaller than X_upper. This is useful to
+      reverse the X-axis scale.
+
+  'Y lower', 'Y upper':
+      Lower and upper values for vertical axis. Notice that
+      Y_upper can be smaller than Y_upper. This is useful to
+      reverse the Y-axis scale.
+
+  'Main title':
+      Title of plot.
+
+  'X-title':
+      Label for X-axis.
+
+  'Y-title':
+      Label for Y-axis.
+
+  'Type of Main plot':
+      Select draw style (line style or points).
+
+  'Type of Overplot':
+      Select draw style for overplot(s).
+
+  'Character size':
+      Character size of title and labels.
+
+  'Symbol size':
+      Size of symbol, when draw style is 'Plus sign' (+).
+
+
+
+  CONTROLS/BUTTONS
+
+  'Plot':
+      Execute plot using currently defined options.
+
+  'Save':
+      Save plot as PostScript file.
+
+  'Help':
+      Display this help page.
+
+  'Exit':
+      Quit XPlot.

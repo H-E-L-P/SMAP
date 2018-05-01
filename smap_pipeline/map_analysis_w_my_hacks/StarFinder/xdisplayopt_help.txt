@@ -1,0 +1,56 @@
+  XDisplay_Opt help page
+
+
+
+  GENERAL DESCRIPTION
+
+  The XDisplay_Opt widget allows the user to define the
+  options to display a given image.
+
+ 
+ 
+  PARAMETERS
+
+  'Minimum intensity':
+      Minimum intensity level to display. Values lower than
+      this bound are set to 'Minimum intensity' before display.
+
+  'Maximum intensity':
+      Maximum intensity level to display.
+
+  'Stretch':
+      Define display scale. Possible choices are
+      - square (maximum contrast)
+      - linear
+      - square root
+      - logarithm (minimum contrast)
+
+  'Reverse scale':
+      Reverse gray level scale: the brightest pixels will be
+      represented by the lowest gray level.
+
+  'Chopping threshold':
+      Pixels above this threshold are set to the minimum gray
+      level. This options is useful to highlight saturated
+      regions in the image.
+
+  'Color Table':
+      Select a pre-defined color table. A suitable choice is
+      'STERN SPECIAL'.
+      This option might not work properly if the screen is not
+      set to 256 colors.
+
+
+
+  CONTROLS/BUTTONS
+
+  'Apply options':
+      Display the input array with the currently defined
+      options. The options are applied to a copy of the input
+      array, which of course is not modified.
+
+  'Help':
+      Display this help page.
+
+  'Exit':
+      Quit XDisplay_Opt.

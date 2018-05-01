@@ -1,0 +1,46 @@
+  XMatch_Coord help page
+
+
+
+  GENERAL DESCRIPTION
+
+  Given two lists of points, referred to reciprocally translated and
+  rotated reference frames on a plane (x, y), the XMatch_Coord
+  application estimates the relative shift and rotation and applies
+  an inverse transformation to the points in list 2, in order to
+  map them onto list 1.
+  The estimation is performed by means of a Newton-like algorithm.
+  A list of reference points, representing a sub-set of list 1, must
+  be supplied, along with a guess of the relative shift and rotation
+  between the reference frames.
+    
+ 
+ 
+  PARAMETERS
+
+  'x-axis translation':
+      Guess of the x-coordinate of the origin of reference frame 2
+      with respect to reference frame 1.
+
+  'y-axis translation':
+      Guess of the y-coordinate of the origin of reference frame 2
+      with respect to reference frame 1.
+
+  'rotation angle':
+      Guess of the angle between the x-axis of reference frame 1
+      and the x-axis of reference frame 2. It must be expressed in
+      degrees, measured counter-clockwise from 1 to 2. 
+
+
+
+  CONTROLS/BUTTONS
+
+  'Match':
+      Estimate shift and rotation angle between reference frames
+      and apply an inverse transformation to the points in list 2.
+
+  'Help':
+      Display this help page.
+
+  'Exit':
+      Quit XMatch_Coord.

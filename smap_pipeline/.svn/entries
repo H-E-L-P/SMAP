@@ -1,0 +1,132 @@
+10
+
+dir
+1119
+svn://spire0.caltech.edu/smap_pipeline/smap_pipeline
+svn://spire0.caltech.edu/smap_pipeline
+
+
+
+2015-02-23T20:13:01.223707Z
+1119
+smapsvn
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+e2f1fbf9-9146-41c4-835d-32c73d25cde8
+
+astrolib
+dir
+
+mpfit
+dir
+
+map_analysis
+dir
+
+template_idlstart.pro
+file
+
+
+
+
+2010-10-18T19:33:50.792163Z
+c2d01cdfa308f5df42c95310ff770f77
+2010-01-05T02:15:37.521032Z
+322
+smapsvn
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2224
+
+coyote
+dir
+
+map_making
+dir
+
+powerspec
+dir
+
+simulations
+dir
+
+astrometry
+dir
+
+sed
+dir
+
+croutines
+dir
+
+timestream_analysis
+dir
+
+util
+dir
+
+README
+file
+
+
+
+
+2013-02-09T01:11:00.791260Z
+80243ece73e280e6481d282607b38186
+2013-02-07T22:51:11.634619Z
+975
+smapsvn
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2287
+

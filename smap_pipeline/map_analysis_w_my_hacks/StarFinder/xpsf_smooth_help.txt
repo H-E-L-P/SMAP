@@ -1,0 +1,58 @@
+  XPsf_Smooth help page
+
+
+  GENERAL DESCRIPTION
+
+  The XPsf_Smooth widget applies a variable box size median
+  smoothing technique to the halo of a PSF image. The smoothing
+  is performed only on the pixels lying outside a pre-fixed
+  distance from the image maximum. The size of the smoothing
+  box increases outwards as a power-law function of the radial
+  distance from the center.
+    
+ 
+ 
+  PARAMETERS
+
+  'Inner radius':
+      Minimum distance from the PSF maximum for median smoothing.
+
+  'Radial width of smoothing box':
+      Radial width of smoothing box at a distance 2 * (Inner radius)
+      from the center. Expressed in pixels.
+
+  'Radial power':
+      Exponent of power law expressing the radial width of the box
+      as a function of the distance from the center.
+
+  'Angular width of smoothing box':
+      Radial width of smoothing box at a distance 2 * (Inner radius)
+      from the center. Expressed in degrees.
+
+  'Angular power':
+      Exponent of power law expressing the angular width of the box
+      as a function of the distance from the center.
+
+  'Pad':
+      Set 'yes' to pad the array with a frame of 0s before smoothing.
+      It may be useful to prevent edge effects. Not always necessary.
+
+
+
+  CONTROLS/BUTTONS
+
+  'Processing...':
+      Apply the currently defined options to the input image.
+      Whenever the 'Processing...' button is pressed, the previous
+      result is overwritten by the input image and the processing
+      is performed with the current options. The result of the
+      last processing is returned on output.
+
+  'Display Options':
+      Modify the display options of the displayed image.
+
+  'Help':
+      Display this help page.
+
+  'Exit':
+      Quit XPsf_Smooth.

@@ -1,0 +1,124 @@
+  XPsf_Extract help page
+
+
+
+  GENERAL DESCRIPTION
+
+  The XPsf_Extract widget extracts a PSF estimate from a
+  stellar field image, as a superposition of a set of stars.
+  The user is prompted to select the candidate sources by
+  clicking with the mouse: each click is allowed to range
+  in a 5x5 box centered on the maximum of the object. After
+  selection, a blow-up of each source is shown, to allow
+  rejection of undesired candidates. 
+  The PSF stars are cleaned from the contaminating sources,
+  if already known from a previous analysis under the same 
+  XStarFinder session, background-subtracted, centered with 
+  sub-pixel accuracy, normalized, stacked and finally combined 
+  by a pixel-by-pixel average with median or mean operation. 
+  Centering involves interpolation, which is reliable only on 
+  well-sampled data.
+  If present, saturated stars might be included as PSF
+  stars, because they provide useful information on the PSF
+  halo. To ensure correct normalization, the core of these
+  stars is approximately repaired, by replacing it with a scaled
+  replica of the PSF: accurate positioning is achieved by
+  correlation maximization, whereas the scaling factor is
+  determined by fitting the wings of the saturated source.
+  Nevertheless the repaired region is masked when forming
+  the PSF. Saturated stars, if not repaired, would be rejected
+  by the detection algorithm, compromising the analysis of
+  fainter sources around.
+  The XPsf_Extract widget returns the estimated PSF and, as
+  a by-product, the input image with repaired saturated stars.
+  Notice that saturated stars, if present, are repaired only
+  if selected for PSF extraction.
+ 
+
+ 
+  PARAMETERS
+
+  'Size of output PSF':
+      Set the size (in pixels units) of the output PSF array.
+
+  'Box size for background estimation':
+      The background is estimated by interpolating an array of
+      local measurements, relative to a set of image sub-regions
+      arranged in a regular grid. This parameter specifies the
+      size (in units of PSF FWHM) of each sub-region.
+      This parameter is only available in the first iteration 
+      of the PSF extraction for a given image: in later iterations, 
+      the procedure adopts the background estimate provided by 
+      the last call to XStarFinder_Run.
+
+  'Normalization radius':
+      The PSF stars are normalized in a way that the integrated 
+      flux within a circular region centered on the stellar peak is 
+      unit. This parameter specifies the radius of this normalization
+      region. Of course, the final PSF estimate is again normalized 
+      to a total flux of 1.
+ 
+  'Average type':
+      Select the way the PSF stars are combined into a single image. 
+
+  'Saturation threshold':
+      Estimate of the saturation level in the input image. This
+      field is set by default to a very high value (larger than
+      the image maximum), indicating no saturation. A saturation
+      threshold smaller than the image maximum indicates the
+      presence of saturated stars. If one or more selected
+      stars have their maximum above this level, they are
+      considered saturated and repair is attempted.
+      If the brightest star in the image was saturated and
+      has been repaired, it is recommended to display the image
+      again and change the display options (see 'Display Image'
+      and 'Display Options' buttons below): the upper intensity
+      level of the display should be increased.
+
+  'Search box to optimize correlation':
+      Accurate positioning of the PSF onto the core of
+      saturated stars is performed by correlation maximization.
+      The 'search box' specifies the region inside which the
+      PSF is positioned to maximize the correlation. The center
+      of the 'search box' is represented by the pixel clicked
+      on by the user when selecting the star. Notice that, when
+      clicking on a saturated star, no tolerance is fixed on
+      the position of the click and no search for the nearest
+      maximum is performed: the presumed center of the
+      saturated star coincides with the click itself.
+
+  'Repair box':
+      Size of the region to use when fitting the wings of a
+      saturated star, in order to determine the proper scaling
+      factor. This box size is expressed in units of the
+      saturated core diameter.
+
+  'Sub-pixel positioning accuracy':
+      When saturated stars are only slightly corrupted, it is
+      possible to achieve sub-pixel accuracy in positioning the
+      PSF onto the saturated core. This parameter indicates the
+      number of sub-pixel offsets for correlation maximization.
+
+
+
+  CONTROLS/BUTTONS
+
+  'Processing...':
+      Extract a PSF estimate applying the currently defined options.
+
+  'Display Image':
+      Display the image array.
+
+  'Display PSF':
+      Display the PSF array.
+
+  'Display Options':
+      Call the widget application XDisplay_Opt to modify the display
+      options of the currently displayed array (either Image or PSF).
+
+  'Help':
+      Display this help page.
+
+  'Exit':
+      Quit XPsf_Extract. Before quitting, the user is prompted to
+      create an ASCII file with the positions of the PSF stars.

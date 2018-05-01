@@ -1,0 +1,36 @@
+  'Image' menu help page
+
+
+  The 'Image' menu contains the following sub-menus:
+
+  'Load':
+      Load an image and/or the background emission from a FITS file.
+
+  'Noise':
+      Estimate the standard deviation of the noise in each pixel of
+      the image. The noise array can also be load from a FITS file.
+
+  'Bad Pixels':
+      Load a bad pixels mask from a FITS file and replace bad pixels
+      in the image. This task might be used to just read bad data
+      points without replacing them.
+
+  'Reference sources':
+      Select reference stars in the currently displayed image by
+      mouse click. The selected sources can be saved to a file and
+      used for instance to compare different lists of stars (see the
+      'Compare Lists' button).
+
+  'Save':
+      Save to a FITS file the following items:
+      - processed image (e.g. after bad pixels repair)
+      - background array (after PSF extraction or stars detection)
+      - detected stars and synthetic stellar field
+        (after stars detection)
+      Save to an ASCII file the following item:
+      - list of detected stars, with position, flux, formal errors
+        and correlation coefficient. This operation may be done
+        also before quitting the stars detection widget application
+        (see 'Astrometry and Photometry' button in the main widget
+        on-line help).
+ 

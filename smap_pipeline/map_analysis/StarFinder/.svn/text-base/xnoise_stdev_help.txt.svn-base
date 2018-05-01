@@ -1,0 +1,70 @@
+  XNoise_StDev help page
+
+
+
+  GENERAL DESCRIPTION
+
+  The XNoise_StDev widget computes an estimate of the
+  gaussian noise standard deviation in a given image; the
+  estimator is the standard deviation of the best fit gaussian
+  to the data histogram. Before computing the histogram, the
+  input image is median-subtracted, in order to remove the
+  signal, leaving only pure noise.
+    
+ 
+ 
+  PARAMETERS
+
+  'Patch size for median subtraction':
+      Integer size of box for median smoothing of the image.
+      The median is subtracted from the image, in order to
+      remove the signal from each pixel.
+
+  'Fraction of data points to use':
+      To speed up the computation, a value < 1 may be
+      selected. In this case a sub-set of pixels is extracted
+      from the input data.
+
+  'Threshold to reject out-liers':
+      Before computing the histogram, the so-called out-liers
+      (pixels whose value is very different from the median or
+      the mean of the data) are rejected.
+      In practice the median of the data and the standard
+      deviation from the median are computed: the out-liers are
+      identified as those pixels whose absolute distance from
+      the median is larger than a multiple of the standard
+      deviation.
+
+  'Minimum number of bins in one HWHM':
+      The histogram bin is optimized in order to have a minimum
+      number of elements in the histogram width. This will
+      improve the accuracy of the fitting.
+
+  'Size of histogram':
+      Specify the size of the 'useful' part of the histogram
+      around the mode, which will be used for fitting.
+
+  'gaussian' or 'gaussian + constant', etc.:
+      Select suitable model for histogram fitting.
+
+
+
+  CONTROLS/BUTTONS
+
+  'Processing...':
+      Compute and fit the histogram using the currently defined
+      parameters. At the end of the computation, a message
+      appears reporting the estimated standard deviation and
+      the histogram mode, which should be as close as possible
+      to 0.
+
+  'Plot histogram':
+      Call the XPlot widget to plot the histogram and the best
+      fit model. If any of the 'gaussian + background term'
+      models is used, the background itself is shown in the plot.
+
+  'Help':
+      Display this help page.
+
+  'Exit':
+      Quit XNoise_StDev.

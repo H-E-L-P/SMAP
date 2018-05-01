@@ -1,0 +1,163 @@
+  XStarFinder_Run help page
+
+
+
+  GENERAL DESCRIPTION
+
+  Given a stellar field and an approximation of the Point Spread
+  Function (PSF), the XStarFinder_Run application detects the
+  stellar sources and estimate their position and flux. The image
+  may be contaminated by a smooth background emission.
+  The basic analysis procedure consists of 3 phases:
+   1) detection of presumed stars above a given threshold in the
+      background-removed image
+   2) check and analysis of detected objects, sorted by
+      decreasing intensity
+   3) re-fitting
+  The procedure above may be iterated: a new list of objects is
+  formed by searching in the image after subtraction of the
+  previously detected stars. Then the analysis proceeds on the
+  original frame. This iteration is very useful to detect close
+  binaries and resolve crowded groups, down to separations
+  comparable to the PSF FWHM. 
+  The analysis of each object (step 2) includes the following
+  steps:
+  - object re-identification, after subtraction of already known
+    stars, to reject spurious detections associated to PSF features
+    of brighter sources
+  - correlation check, to measure the similarity of the object
+    with the PSF
+  - local fitting, to determine position and flux; fitting takes
+    into account the contribution of other stars; the contribution 
+    of the local background may be taken into account by fitting a 
+    tilted plane or as a fixed contribution, taken from the current 
+    background map
+  - upgrading of a 'stellar field model', which contains a
+    replica of the PSF for each detected star; it is basically
+    used to take into account the contribution of bright sources
+    when analyzing fainter and fainter ones.
+  If the approximate positions and fluxes are known, it is possible 
+  to load a list of sources, skipping the detection and analysis 
+  steps 1)+2) described above. In this case, only step 3) is performed 
+  and the input sources are just fitted pre-fixed number of times. 
+
+
+ 
+  PARAMETERS
+
+  'Detection threshold(s)':
+      Enter one or more detection thresholds separated by
+      commas.
+      The number of thresholds specifies also the number of
+      iterations of the basic analysis procedure (see steps 1,
+      2, 3 in the GENERAL DESCRIPTION).
+      A detection threshold represents the minimum central
+      intensity of an acceptable star, after removing the local
+      background contribution.
+      An effective choice is to select two detection levels,
+      both equal to (3 * Sigma), where Sigma is an estimate of
+      the noise standard deviation.
+
+  'Relative threshold':
+      If this option is set, the detection threshold is considered
+      as a relative threshold, in units of the noise standard
+      deviation. This button is active only if the noise is
+      defined on input, i.e. if the noise computation procedure
+      has been run before using this application.
+
+  'Correlation threshold':
+      Scalar value, representing the minimum correlation to accept
+      an object.
+
+  'No. of sub-pixel offsets':
+      The correlation of the object with the PSF is affected by the
+      relative off-centering between the two patterns; this parameter
+      specifies the number of sub-pixel offsets to maximize the
+      correlation.
+
+  'Noise':
+      Set this option to use the input noise array to perform a
+      weighted PSF fitting on the presumed objects. When this
+      option is applied, an estimate of the formal errors on
+      astrometry and photometry will be computed.
+
+  'Upgrade background':
+      Set this option to upgrade the background estimate (see next 
+      parameter for details). If this option is disabled, the 
+      background map is kept fixed, equal to the input value.
+
+  'Box size for background estimation':
+      An accurate background estimate is necessary for accurate
+      objects detection and for a more reliable computation of
+      the correlation coefficient of each object with the PSF.
+      The background is estimated by interpolating an array of
+      local measurements, relative to a set of image sub-regions
+      arranged in a regular grid. This parameter specifies the
+      size (in units of PSF FWHM) of each sub-region.
+      This parameter is set by default to the same value that has
+      been used in the PSF extraction procedure (XPsf_Extract).
+
+  'Fit background below sources':
+      Set this option to take into account the local background 
+      by means of a tilted plane, which is optimized together with 
+      the parameters of the source(s) being fit. If this option is 
+      not set, the local background estimate is derived from the 
+      background map described above (see previous parameter for 
+      details) and kept fixed in the fitting process.  
+
+  'Minimum distance of close sources':
+      Very close sources are fit together. A check is performed 
+      on the outcome of the fit: if the sources are closer than 
+      this distance (in units of PSF FHWM), then the fit is 
+      considered unacceptable and the last detected source in the 
+      group is rejected as a false detection. Usually a minimum 
+      distance equal to the PSF FWHM is a safe limit. A smaller 
+      threshold should be used only when the PSF estimate is very 
+      accurate and in good signal-to-noise conditions.
+
+  'Final re-fitting iterations':
+      At the end of each iteration (see GENERAL DESCRIPTION),
+      all the currently known stars are re-fitted once.
+      At the end of the whole analysis, the re-fitting may be
+      further iterated to improve the astrometry and photometry.
+      This parameter is to set the number of final re-fitting
+      iterations.
+
+
+
+  CONTROLS/BUTTONS
+
+  'Load list':
+      Load an input list of stars. The list must be in an ASCII file 
+      with three columns: X position, Y position, Flux.
+      The positions are in pixels, the flux is referred to the PSF. 
+      When a list is loaded, the program will not perform a new 
+      detection: the loaded sources will be just fit a number of time 
+      given by the parameter 'Final re-fitting iterations'. 
+      Note: the loaded list is kept in memory until the XStarFinder_Run 
+      task is closed. 
+
+  'Processing':
+      Analyze stellar field, applying the currently defined options.
+
+  'Save results':
+      Save list of stars on ASCII file. The output list is organized
+      as a 7 columns table, with the following format:
+
+      X  Y  Flux  Sigma_X  Sigma_Y  Sigma_Flux  Correlation
+
+      where
+      - X, Y  are the coordinates of a star in pixels
+      - Flux  is the total flux
+      - Sigma_X, Sigma_Y, Sigma_F  are the formal error estimates
+             on X, Y, Flux respectively
+      - Correlation  is the correlation coefficient of the star;
+             notice that the correlation coefficient of a star
+             found by de-blending (if applied) is set to -1
+                   
+
+  'Help':
+      Display this help page.
+
+  'Exit':
+      Quit XStarFinder_Run.

@@ -1,0 +1,673 @@
+		CONTENTS OF THE MIDL IDL LIBRARY
+			Version 3.3
+
+			Mati Meron
+
+The purpose of this document is to provide a brief description of my IDL 
+library.  All the routines are fully documented and all the relevant 
+information may be obtained using the IDL DOC_LIBRARY procedure.  For this 
+reason the following list includes only the names of the routines and their 
+function.  A fuller listing (including code) of all the routines is provided in 
+the file MIDL_LIB.LST
+
+_______________________________________________________________________________
+
+ABGRAD
+
+Mathematical function.  Returns the absolute value of the gradient of a 
+function represented as an array of values.  Works for 1-7 dimensions.
+
+ABS_MM
+
+Mathematical function.  Returns the absolute value of the argument.  Fixes a 
+bug in the IDL routine ABS which generates an overflow for complex numbers when
+either the real or the imaginary part is greater (in absolute value) then the 
+square root of the system limit.  Temporary routine, will be eliminated once 
+IDL fixes the bug.
+
+ARC
+
+Graphics procedure.  Draws a circular arc in the currently defined plot area.  
+The arc can be defined by two points and radius, two points and angle, or one 
+point, center and angle. 
+
+ARREQ
+
+Logical function.  Compares arrays for equality.  The arrays qualify as equal 
+if:
+    1) They are of the same general type (num., char., struct. or pointer).
+    2) Number of dimensions is the same.
+    3) Size of each dimension is the same.
+    4) Respective elements are equal (optionally, this demand may be skipped).
+ARREQ returns a scalar that can be used in conditional statements.
+
+ARRLOC
+
+Utility function.  Converts array indices from expanded, multi-dimensional form
+to a contracted, one-dimensional form and vice versa.  For example, given an 
+array of dimensions (N1,N2,N3), an arbitrary element is adressed by the 
+expanded, 3 dimensional index (i1,i2,i3).  Same element can also be adressed by 
+the contracted, 1 dimensional index
+
+    j = i1 + n1*i2 + n1*n2*i3
+
+ARRLOC is used to convert between the two forms.
+
+ARRO
+
+Graphics procedure.  Given two points in the currently defined plot are, draws 
+an arrow between them.  Various arrow styles can be selected.  Was originally 
+called ARROW, the name was changed to avoid a conflict with an IDL routine 
+bearing the same name.
+
+ASP_CORR
+
+Graphics function.  Corrects the aspect ratio of a 2-dimensional SHAPE (see 
+below), in order to make up for different scaling in the x and y dimensions.
+See SHAPE_VER for a SHAPE definition.
+
+BESELK
+
+Obsolete.  Replaced by BESELK_MM.
+
+BESELK_MM
+
+Mathematical function.  Returns the Bessel K-function (arbitrary integer order)
+of the argument or, optionally, an integral of a Bessel K-function from X (the 
+value of the argument) to infinity.
+
+BOX
+
+Graphics procedure.  Creates an empty, 2-dimensional, plot area.  Useful for 
+drawing.
+
+CAST
+
+Programming utility function.  Performs generalized type casting, converting 
+all variables whose type code is out of a given range of types into this range.
+For example the command:
+		Y = CAST(X,4)
+will return X converted to type FLOATING, if the type of x is BYTE, INTEGER 
+or LONG, else will return X.  More generally, the command
+		Y = CAST(X,3,5) 
+will convert X to LONG INTEGER if the original type is BYTE or INTEGER 
+return X as is if the type is LONG, FLOATING or DOUBLE, and convert X to  
+DOUBLE if the type of X is COMPLEX. or DOUBLECOMPLEX.  For listing of IDL 
+type codes see the IDL manual.
+
+CHEBYSHEV_POL
+
+Mathematical function.  Returns the Chebyshev polynomial (arbitrary order) or, 
+optionally, the associated Chebyshev function.  Not to be confused with the IDL
+CHEBYSHEV routine which generates a Chebyshev expansion.
+
+CIRCLE
+
+Graphics procedure.  Draws a circle in the currently defined plot area.  The 
+circle is defined by its center and radius and is drawn so as to appear 
+visually as a circle, regardless of the coordinates used.
+
+CONFRAC
+
+Mathematical function.  General purpose continued fraction evaluation.  Useful 
+for the evaluation of exotic functions.
+
+CONSTANTS
+
+Utility procedure.  Creates and/or updates a system variable named !PCON.  
+!PCON is a structure the fields of which contain various useful physical 
+constants.
+
+CONVOL_MM
+
+Mathematical function.  A general purpose convolution routine.  Faster and more
+flexible than the IDL function CONVOLVE.
+
+COO_CONV
+
+Graphics function.  Transforms values between the coordinate systems supported 
+by IDL.  Allowed coordinate systems are DATA, DEVICE (only for X, Y axes) and 
+NORMAL.  Functionally similar to the IDL function CONVERT_COORD, COO_CONV is 
+maintained for historical reasons.
+
+COSANGLE
+
+Mathematical (geometrical) function.  Finds the Cosine of the angle between two 
+vectors of arbitrary dimensionality.
+
+DEFAULT
+
+Programming utility function.  Provides an automatic default value for non 
+defined parameters.  Called with two input parameters, returns the first one 
+if it is defined, else returns the second one.  Optionally, type checking and 
+casting is available.
+
+DEGLITCH
+
+Array function.  Replaces exceptional array elements by the average of their 
+neighbors.
+
+DIAGOARR
+
+Array function.  Returns a square array with the elements of the argument 
+vector on the diagonal.  See also DIAGOVEC.
+
+DIAGOVEC
+
+Array function.  Extracts the diagonal of a square matrix and returns it as a
+vector.  See also DIAGOARR>
+
+ELLIPSE
+
+Graphics procedure.  Draws an ellipse, in the currently defined plot area.  
+The ellipse is defined by its center and the X and Y radii.  Part of an 
+ellipse (i.e. an elliptical arc) can also be drawn.
+
+ERRBARS
+
+Plotting procedure.  Overplots error bars over an existing plot.  More general 
+than the user library routines ERRPLOT and PLOTERR, since it allows to 
+independently vary both X and Y errors, and allows for non symmetric error bars.
+
+ERRORF_MM
+
+Mathematical function.  Returns the Error function of the argument, same as the
+IDL function ERRORF.  Better then ERRORF since it can calculate in double 
+precision and it accepts complex input.
+
+EXTEND_ARRAY
+
+Array function.  Extends an array to a larger size, filling the blanks 
+according to keyword specifications.
+
+EXTREMA
+
+Mathematical function.  Given a function provided as a vector of values, 
+EXTREMA returns the location of all local minima and maxima.  A generalization 
+of the IDL MIN and MAX functions.
+
+FPU_FIX
+
+Programming utility function.  Clears Floating Point Underflow math errors and 
+substitutes 0 for all instances of values smaller (in absolute value) than 
+machine minimum (how such values may occur is a mystery which even RSI finds 
+difficult to explain).
+
+FRESNEL_INT
+
+Mathematical function.  Returns the Fresnel Integral of type C(x) or, 
+optionally, S(x).
+
+GAMMA_MM
+
+Mathematical function.  Returns the Gamma function of the argument, same as the
+IDL function GAMMA.  Better then GAMMA since it can calculate in double 
+precision and it accepts complex input.
+
+HEAD
+
+Utility procedure.  Displays the beginning ("head") or, optionally any other 
+part of a single 2-dimensional array or 1-8 vectors.  A variety of formatting 
+options is available.  See also TAIL.
+
+HOW_MANY
+
+Programming utility function.  A generalization of the IDL KEYWORD_SET 
+function, HOW_MANY may be called with up to 8 keyword parameters and it checks 
+how many and which ones are defined.
+
+IGAMMA_MM
+
+Mathematical function.  Returns the incomplete Gamma function of the argument, 
+same as the IDL function IGAMMA.  Better then IGAMMA since it can calculate in 
+double precision and it accepts complex input.
+
+IMAGINARY_MM
+
+Mathematical function.  Returns the imaginary part of a complex argument.  
+Preferable to the IDL function IMAGINARY, since it can be applied to a non 
+complex number of variable.  In such case IMAGINARY_MM returns 0, which is 
+mathematically correct (IMAGINARY returns an error).
+
+INTEG
+
+Mathematical function.  Integrates a function provided as a vector of points, 
+using Simpson integration and cubic interpolation.  Can be set to return either
+a scalar value or a full integral function, i.e. the value of the integral at 
+each point at which the input function is defined.
+
+ISNUM
+
+Programming utility function.  Returns 1 if the argument is a number, zero 
+otherwise.  Optionally checks for DOUBLE or COMPLEX.
+
+LABELS
+
+Plotting procedure.  A multiple XYOUTS interface, convenient for massive 
+labeling of plots.
+
+LAPLACIAN
+
+Mathematical function.  Returns the Laplacian of a function represented as an 
+array of values.  Works for 1-7 dimensions.
+
+LEGENDRE_POL
+
+Mathematical function.  Returns the Legendre polynomial of the argument or, 
+optionally, the associated Legendre function.
+
+LINCROSS
+
+Geometrical function.  Finds the crossing point of lines and/or line segments 
+in plane.
+
+LINFIT_MM
+
+Mathematical function.  Performs linear fitting with an arbitrary number of 
+parameters and arbitrary base functions.  More powerful and general then the 
+IDL function LINFIT.
+
+LNGAMMA_MM
+
+Mathematical function.  Returns the natural log of the Gamma function of the 
+argument, same as the IDL function LNGAMMA.  Better then LNGAMMA since it can 
+calculate in double precision and it accepts complex input.
+
+MAKE_GRID
+
+Utility function.  Generates a 1-6 dimensional grid of points within a provided
+range.  Either number of points or stepsize along each dimension may be 
+specified.
+
+M_ABS
+
+Obsolete.  Replaced by ABS_MM.
+
+M_CONVOL
+
+Obsolete.  Replaced by CONVOL_MM.
+
+M_ERRORF
+
+Obsolete.  Replaced by ERRORF_MM.
+
+M_GAMMA
+
+Obsolete.  Replaced by GAMMA_MM.
+
+M_IGAMMA
+
+Obsolete.  Replaced by IGAMMA_MM.
+
+M_IMAGINARY
+
+Obsolete.  Replaced by IMAGINARY_MM.
+
+M_LINFIT
+
+Obsolete.  Replaced by LINFIT_MM.
+
+M_LNGAMMA
+
+Obsolete.  Replaced by LNGAMMA_MM.
+
+M_NERFC
+
+Obsolete.  Replaced by NERFC_MM.
+
+M_REAL
+
+Obsolete.  Replaced by REAL_MM.
+
+M_SMOOTH
+
+Obsolete.  Replaced by SMOOTH_MM.
+
+NATAN
+
+Mathematical function.  A generalization of the ATAN function.  Returns the 
+integral (0 to X) of (1 + x^2)^(-n-1) (or, optionally (1 - x^2)^(-n-1)).  
+Useful for some synchrotron calculations.
+
+NEIGHBORS
+
+Array function.  Provided an array index, NEIGHBORS returns the indices of the 
+nearest neighbors of the element corresponding to the index.
+
+NERFC_MM
+
+Mathematical function.  Calculates a renormalized complementary error function,
+defined as exp(x^2)*(1 - errorf(x)).  For large values of x this function 
+cannot be calculated directly due to cancellation errors.  NERFC_MM accepts 
+complex input.
+
+NOISE
+
+Mathematical function.  Adds Gaussian or Poissonian noise to data.
+
+OBSTAT
+
+Utility routine.  Provides information about obsolete routines and their 
+replacements.
+
+ONE_OF
+
+Programming utility function.  Called with up to 8 variables A_ through H_ , 
+ONE_OF checks which variable is defined (only one is supposed to be) and 
+returns its number. (optionally also value).
+
+OUTPUT
+
+I/O procedure.  A Generic output interface.  Allows sending the results of 
+virtually any IDL command or file to any predefined hard copy device.  In 
+detail, OUTPUT executes the provided command, writes the output to a file and 
+sends the file to a printout que.  Currently OUTPUT is a VMS specific command.
+
+PARTOT
+
+Array function.  A generalized version of the IDL TOTAL function, allowing for 
+partial summation within prescribed limits, as well as fractional counting of 
+boundary elements.  Useful as a quick and dirty multi dimensional integration 
+routine.
+
+PLOTOT
+
+Plotting procedure.  Plots multiple data sets on a single plot.
+
+PLOT_VER2
+
+Plotting procedure.  Draws 2 plots, vertically spaced, with a possibility of 
+multiple curves on each plot.
+
+PLVAR_KEEP
+
+Utility procedure.  Saves or restores the values of system variables.  Typical 
+use is to save these values before performing some output operations, and 
+restore them afterwards.
+
+POLEVAL
+
+Mathematical function.  Evaluates a polynomial according to the formula: 
+
+		F = c(0) + c(1)*X + ... + c(n)*X^N
+
+Similar to the library function POLY.  The difference is that POLEVAL can 
+also perform polynomial division.  In other words, given the coefficients of 
+a polynomial P, and a value Xc, the function returns the value P(Xc), and, 
+optionally, also the coefficients of the polynomial Q(X) = P(X)/(X - Xc).  
+Note that unless P(Xc) is 0, the division has a remainder.
+
+PRINUMS
+
+Mathematical function.  Returns a table of prime numbers in the specified 
+range.  Was originally named PRIMES, but renamed to avoid a conflict with an 
+IDL function bearing the same name.  Much faster and more flexible then the IDL
+PRIMES.
+
+RANDISC
+
+Mathematical function.  Returns a set of discrete random numbers (analogous to 
+throwing dice).  Uniform or Binomial distributions may be chosen.
+
+RASCII
+
+I/0 function.  Reads data from an ASCII file into an array.  It is assumed 
+that the file contains columns of numbers, with the same number of entries in 
+each row.  The numbers may be separated by commas, spaces and/or tabs. Text 
+lines imbedded in the data are skipped.  Replaces the previous READ_ASCII.  See 
+also WASCII.
+
+REAL_MM
+
+Mathematical function.  Returns the argument itself if it is real or its real
+part if it is imaginary.  In the second case the  result type is adjusted to 
+fit the argument type, i.e. COMPLEX yields FLOAT and DOUBLECOMPLEX yields 
+DOUBLE.  Temporary function, will be retired once IDL provides a REAL function.
+
+RECTAN
+
+Graphics procedure.  Draws a rectangle in the currently defined plot area.  
+The rectangle is defined by its limits in the X and Y directions.
+
+ROMBERG
+
+Mathematical function.  Performs high precision numerical integration of any 
+legitimate IDL function.  Can handle functions with integrable singularities at
+the ends of the integration range.
+
+ROOT
+
+Mathematical function.  Finds roots of functions.  Capable of dealing with 
+singularities and multiple roots.
+
+SEQLIM
+
+Mathematical function.  Provided with few (two or more) terms of a sequence, 
+returns an estimate of the limit of this sequence for N --> infinity.  Of 
+course the more terms are provided, the better is the estimate.  See also 
+SERIES_SUM.
+
+SERIES_SUM
+
+Mathematical function.  Same as SEQLIM, for series.  Returns the estimate of a 
+sum of an infinite series based on the first few terms.
+
+SHAPE_AREA
+
+Shape function.  Calculates the area enclosed by a 2D shape.  See SHAPE_VER for 
+a definition of shape.
+
+SHAPE_CLOSE
+
+Shape function.  Closes a shape, i.e. appends the first point to the end of the
+shape.  If the shape is already closed, it is returned unchanged.  See 
+SHAPE_VER for a definition of shape.
+
+SHAPE_COCON
+
+Shape function.  Converts 2 or 3 dimensional shapes between IDL-recognized 
+coordinate systems.  Allowed systems are DATA, DEVICE (only for 2-dim shapes) 
+and NORMAL.  In principle identical to the system routine CONVERT_COORD, 
+SHAPE_COCON is maintained for historical reasons.  See SHAPE_VER for a 
+definition of shape.
+
+SHAPE_EDGE
+
+Shape function.  Modifies a 2D shape by cutting it along a straight edge.
+See SHAPE_VER for a definition of shape.
+
+SHAPE_OVERLAP
+
+Shape function.  Finds the shape corresponding to the overlap of two given 2D 
+shapes.  See SHAPE_VER for a definition of shape.
+
+SHAPE_TRANS
+
+Shape function.  Performs a geometrical transformation of an arbitrary 2-dim 
+shape.  The 
+transformation may include (in order):
+    1)  Magnification (can magnify each axis by a different factor.  The 
+	magnification may include inversion in the X or Y axis.
+    2)  Rotation.
+    3)  Translation.
+
+See SHAPE_VER for a definition of shape.
+
+SHAPE_VER
+
+Shape functioon.  Checks whether its input is a proper shape.
+
+SHAPE is defined (by me) as a (2,*) or (3,*) numeric (non-complex) array, 
+representing a set of points in the plotting space.  Another definition is:  
+anything that when fed to the PLOTS routine results in a drawing, is a SHAPE.  
+A SHAPE is closed if its last point coincides with the first one.
+
+SHUFFLE
+
+Array function.  Randomizes an array (without changing the values of the 
+elements).
+
+SIGN
+
+Mathematical function.  Returns the sign of the argument, i.e. 1 for positive, 
+-1 for negative, 0 for 0.  For complex values SIGN(REAL(X)) is returned.
+
+SMOOTH_MM
+
+Mathematical function.  Performs a nonbroadening smoothing using a variation of
+the Savitzky-Golay procedure.  For 1D arrays SMOOTH_MM can also return smoothed 
+first or second derivative.
+
+SOLVE_LINSYS
+
+Mathematical function.  Solves a system of linear equations, i.e. equations of 
+the form : A*X = B, where A is a square matrix, B a known vector and X is the 
+solution vector.  Can work either in standard or in an SVD (Singular Value 
+Decomposition) mode.
+
+SORPURGE
+
+Array function.  Similar to the IDL function SORT, but ignoring repetitions 
+of elements.  In other words, SORPURGE returns an vector of indices that 
+provides an access to all DIFFERENT elements of the argument array, in 
+ascending order.  Similar to the IDL function UNIQ (though it precedes UNIQ by 
+few years), SORPURGE doesn't depend on the array being sorted into monotonic 
+order.  Thus SORPURGE(A) = UNIQ(A,SORT(A)).
+
+SPLINROOT
+
+Mathematical function.  Finds roots of functions provided as a set of spline 
+coefficients.  The coefficients should be generated using SPLINE_COEFFS.
+
+SPLINT
+
+Mathematical function.  Integrates a function provided as a set of cubic spline
+coefficients.  Works in conjunction with SPLINE_COEFFS (see below).  Can be set
+to return either a scalar value or a full integral function, i.e. the value of 
+the integral at each point.
+
+SPLIN_COEFFS
+
+Mathematical function.  Calculates cubic spline coefficients which are intended
+to be used by the supplementary function SPLIN_EVAL.  Similar, though not 
+identical to the IDL function SPL_INIT.
+
+SPLIN_EVAL
+
+Mathematical function.  Performs cubic spline interpolation using spline 
+coefficients supplied by the supplementary function SPLIN_COEFFS.  Similar to 
+the IDL function SPL_INTERP, but more general.  Can return first or second 
+derivative instead of the function itself.
+
+SP_BESELJ
+
+Mathematical function.  Returns the spherical Bessel j function (of arbitrary 
+integer order) of the argument.
+
+SP_BESELY
+
+Mathematical function.  Returns the spherical Bessel y function (of arbitrary 
+integer order) of the argument.
+
+SQUARE
+
+Graphics procedure.  Draws a SQUARE, in the currently defined plot area.  The 
+square is defined by the location of one of its corners and the length of its 
+side.  The square is drawn so as to appear visually as a square, regardless of 
+the coordinates used
+
+SQUNEXP
+
+Mathematical function.  Returns a "flattened exponent" function, i.e. a 
+function  intermediate between a "box" and a negative exponent.  For exact 
+definition check out the function itself.  Can be adjusted all the way from an 
+exponent to a square function.
+
+SQUNORM
+
+Mathematical function.  Same as SQUNEXP, but with the exponent replaced by a 
+Gaussian.
+
+STREQ
+
+String function.  Compares for equality two character strings.  Can be made to 
+compare the whole strings or only a selected number of characters, in either 
+case sensitive or case blind mode.
+
+STRMATCH
+
+Obsolete.  Replaced by STRMATCH_MM.
+
+STRMATCH_MM
+
+String function.  Compares a character string with a list of strings.  If a 
+match is found, returns the number of the matching string(s) or, optionally, of 
+the non-matching ones.  Like in STREQ, the comparison can be done for all or 
+just a selected number of characters.
+
+STRPARSE
+
+Obsolete.  Replaced by STRPARSE_MM.
+
+STRPARSE_MM
+
+String function.  Parses a character string using a provided list of 
+delimiters.  Returns the number of pieces found, and, separately, the 
+individual pieces (in a character array)
+
+TABULATE
+
+I/O procedure.  Accepts data in form of a set (up to 8) of one dimensional 
+arrays and prints it out as a table.  Optionally outputs the table to a file.
+
+TAIL
+
+Utility procedure.  Displays the end ("tail") or, optionally any other 
+part of a single 2-dimensional array or 1-8 vectors.  A variety of formatting 
+options is available.  See also HEAD.
+
+TOLER
+
+Programming utility function.  Establishes numerical tolerance value for 
+numerical procedures.  The value depends both on the machine precision and on 
+the type of the argument and it equals the value of the .EPS field of the 
+structure created by the IDL function MACHAR.
+
+TYPE
+
+Programming utility function.  Returns the type code of the input parameter, 
+i.e. 0 for undefined X, otherwise a number between 1 to 11 (currently).  For 
+listing of IDL type codes see the IDL manual
+
+UNIVEC
+
+Mathematical function.  Normalizes a vector.
+
+VINP
+
+Mathematical function.  Given two vectors, returns the inner (scalar) product.
+
+VNORM
+
+Mathematical function.  Returns the norm of a vector.
+
+VOUP
+
+Mathematical function.  Given two vectors, returns the outer (scalar) product.
+
+WASCII
+
+I/O procedure.  Writes a 1-2 dim array into an ASCII file, in a table format 
+(such as can be later read using RASCII.  Replaces the previous WRITE_ASCII.
+
+WHEREINSTRUCT
+
+Peogramming utility function.  The equivalent of the IDL WHERE function, for 
+structures.  Provided with a (full or partial) field name it searches a 
+structure for all matching names and returns their indices.
+
+WIGGLINE
+
+Graphics procedure.  Draws a wiggly (sinusoidal) line in the currently defined 
+plot area.
+

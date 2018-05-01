@@ -1,0 +1,266 @@
+;+
+;NAME
+; simulate_scan
+;PURPOSE
+; To rescan a user-provided map, replacing the TOD data
+; with the scan of the map
+;USAGE
+; simulate_scan, tods, maps
+;ARGUMENTS
+; tods      Pointer array of TODs from smap_read_and_filter.  Modified
+;            on output
+; maps      Pointer array of SMAP maps to scan.  All bands are
+;            modified, so if you don't provide the map in a given band,
+;            you will get back a blank (or noise only) scan
+;OPTIONAL INPUTS
+; noise     Noise per sample, assumed Gaussian, in Jy.  The defaults are
+;            0.04313/0.04997/0.07763 Jy/beam.  If your maps already
+;            have noise in them, you should probably set this to zero.
+; fknee     Knee frequency for 1/f noise [in Hz], which is where 1/f and
+;            white noise have equal power.  0 by default, which
+;            means no 1/f noise is included.  If your noise level is
+;            zero, you also don't get any 1/f noise.  This can be
+;            either a single value (applied to all bands) or a
+;            different value for each band.
+; falpha    Alpha for 1/f noise -- the actual PSD is 1/f^alpha,
+;            in Jy^2/Hz, so the usual meaning of 1/f noise is alpha=2,
+;            the default.
+; seed      The seed for the random number generator
+;NOTES
+; If 1/f noise is included, a single long timestream for each band
+;  is generated.  So this ignores any response variations, and assumes
+;  all the bolometers on a given array (PSW, PMW, PLW) have perfectly
+;  correlated 1/f noise.
+; Note that setting fknee to a single value and noise to different
+;  values for each band means you get different levels of 1/f noise
+;  in each!
+; You can achieve equal 1/f power with fknee=[0.048,0.0414,0.0267]
+;  for the default settings (alpha=2, default white noise).
+;MODIFICATION HISTORY
+; Author: Alex Conley, Feb 2010
+;-
+
+PRO simulate_scan, tods, maps, NOISE=noise, VERBOSE=verbose,$
+                   ERRMSG=errmsg, SUCCESS=success, SEED=seed,$
+                   FKNEE=fknee, FALPHA=falpha
+  COMPILE_OPT IDL2, STRICTARRSUBS
+  success = 0b
+  errmsg  = ''
+
+  nnoise = N_ELEMENTS(noise)
+  IF nnoise EQ 0 THEN BEGIN
+     inoise = [43.13,49.97,77.63]*1e-3
+  ENDIF ELSE IF nnoise EQ 1 THEN BEGIN
+     inoise = REPLICATE(noise[0],3)
+  ENDIF ELSE IF nnoise EQ 3 THEN inoise=noise ELSE BEGIN
+     errmsg = "Don't know how to handle noise vector of length "+$
+              STRING(nnoise)
+     GOTO,err_handler
+  ENDELSE
+
+  nfknee = N_ELEMENTS(fknee)
+  IF nfknee EQ 0 THEN BEGIN
+     ifknee = [0.0,0,0]
+  ENDIF ELSE IF nfknee EQ 1 THEN BEGIN
+     ifknee = REPLICATE(fknee[0],3)
+  ENDIF ELSE IF nfknee EQ 3 THEN ifknee=fknee ELSE BEGIN
+     errmsg = "Don't know how to handle knee vector of length "+$
+              STRING(fknee)
+     GOTO,err_handler
+  ENDELSE
+
+  ntods = N_ELEMENTS(tods)
+  IF ntods EQ 0 THEN BEGIN
+     errmsg = "No tods passed in"
+     GOTO, err_handler
+  ENDIF
+  IF SIZE(tods,/TNAME) NE 'POINTER' THEN BEGIN
+     errmsg = "Expected pointer of TODs"
+     GOTO, err_handler
+  ENDIF
+
+  nmaps = N_ELEMENTS(maps)
+  IF nmaps EQ 0 THEN BEGIN
+     errmsg = "No maps passed in"
+     GOTO, err_handler
+  ENDIF
+  IF SIZE(maps,/TNAME) NE 'POINTER' THEN BEGIN
+     errmsg = "Expected pointer of maps"
+     GOTO,err_handler
+  ENDIF
+
+  ;;Figure out which bands we are doing
+  bands = STRARR( nmaps )
+  FOR i=0,nmaps-1 DO bands[i] = (*maps[i]).names
+  w250 = WHERE( bands EQ 'PSW', n250 )
+  w350 = WHERE( bands EQ 'PMW', n350 )
+  w500 = WHERE( bands EQ 'PLW', n500 )
+
+  IF n250+n350+n500 EQ 0 THEN BEGIN
+     errmsg = "Didn't recognize the bands of any of the maps"
+     GOTO, err_handler
+  ENDIF
+
+  ;;Figure out the minimum and maximum time sample if we are
+  ;; doing 1/f noise
+  IF MAX( ifknee ) GT 0.0 AND MAX( inoise ) GT 0.0 THEN BEGIN
+     do_fpsw = (ifknee[0] GT 0.0) AND (inoise[0] GT 0.0) AND (n250 NE 0)
+     do_fpmw = (ifknee[1] GT 0.0) AND (inoise[1] GT 0.0) AND (n350 NE 0)
+     do_fplw = (ifknee[2] GT 0.0) AND (inoise[2] GT 0.0) AND (n500 NE 0)
+
+     mintime = MIN((*tods[0]).samptime,MAX=maxtime)
+     delta = (maxtime-mintime)/(*tods[0]).nsamps
+     FOR j=1,ntods-1 DO BEGIN
+        cmintime = MIN((*tods[j]).samptime,MAX=cmaxtime)
+        mintime <= cmintime
+        maxtime >= cmaxtime
+     ENDFOR
+     nf = CEIL((maxtime-mintime)/delta)
+     IF KEYWORD_SET( verbose ) THEN BEGIN
+        msg = STRING(nf,FORMAT='("Will generate ",I0," samples for 1/f noise")')
+        MESSAGE,msg,/INF
+     ENDIF
+
+     ;;Calculate constants
+     IF N_ELEMENTS(falpha) EQ 0 THEN falpha=2.0
+     fconsts = 2*delta*inoise^2*ifknee^falpha
+
+     ftime = mintime + delta*dindgen(nf)
+     IF do_fpsw THEN BEGIN
+        fpsw = generate_fnoise(nf,delta,fconsts[0],ALPHA=falpha,$
+                               SEED=seed,ERRMSG=errmsg,SUCCESS=fsuccess)
+        IF fsuccess EQ 0 THEN GOTO,err_handler
+     ENDIF
+     IF do_fpmw THEN BEGIN
+        fpmw = generate_fnoise(nf,delta,fconsts[1],ALPHA=falpha,$
+                               SEED=seed,ERRMSG=errmsg,SUCCESS=fsuccess)
+        IF fsuccess EQ 0 THEN GOTO,err_handler
+     ENDIF
+     IF do_fplw THEN BEGIN
+        fplw = generate_fnoise(nf,delta,fconsts[2],ALPHA=falpha,$
+                               SEED=seed,ERRMSG=errmsg,SUCCESS=fsuccess)
+        IF fsuccess EQ 0 THEN GOTO,err_handler
+     ENDIF
+  ENDIF ELSE BEGIN
+     do_fpsw = 0b
+     do_fpmw = 0b
+     do_fplw = 0b
+  ENDELSE
+
+  FOR i=0,ntods-1 DO BEGIN
+     IF KEYWORD_SET(verbose) THEN BEGIN
+        msg = STRING(i,ntods-1,100.0*i/(ntods-1.0),$
+                     FORMAT='("Processing ",I0," of ",I0," [",F5.1,"%]")')
+        MESSAGE,msg,/INF
+     ENDIF
+
+     DELVARX, tout
+     wt250 = where( STRMID( (*tods[i]).chan, 0, 3 ) EQ 'PSW', nt250 )
+     wt350 = where( STRMID( (*tods[i]).chan, 0, 3 ) EQ 'PMW', nt350 )
+     wt500 = where( STRMID( (*tods[i]).chan, 0, 3 ) EQ 'PLW', nt500 )
+     IF (nt250+nt350+nt500 EQ 0) THEN BEGIN
+        errmsg = "No bands found!"
+        GOTO, err_handler
+     ENDIF
+
+     IF n250 NE 0 AND nt250 NE 0 THEN BEGIN
+        IF n250 GT 0 THEN FOR j=0, n250-1 DO BEGIN
+           get_timestream_from_map, *tods[i], *maps[w250[j]], tout,$
+                                    SUCCESS=get_success, ERRMSG=errmsg
+           IF get_success EQ 0 THEN BEGIN
+              errmsg = "While making PSW timestream: " + STRING(j) + " " $
+                       + errmsg
+              GOTO, err_handler
+           ENDIF
+        ENDFOR
+
+     ENDIF
+
+     IF n350 NE 0 AND nt350 NE 0 THEN BEGIN
+        IF n350 GT 0 THEN FOR j=0, n350-1 DO BEGIN
+           get_timestream_from_map, *tods[i], *maps[w350[j]], tout,$
+                                    SUCCESS=get_success, ERRMSG=errmsg
+           IF get_success EQ 0 THEN BEGIN
+              errmsg = "While making MSW timestream: " + STRING(j) + " " $
+                       + errmsg
+              GOTO, err_handler
+           ENDIF
+        ENDFOR
+     ENDIF
+
+     IF n500 NE 0 AND nt500 NE 0 THEN BEGIN
+        IF n500 GT 0 THEN FOR j=0, n500-1 DO BEGIN
+           get_timestream_from_map, *tods[i], *maps[w500[j]], tout,$
+                                    SUCCESS=get_success, ERRMSG=errmsg
+           IF get_success EQ 0 THEN BEGIN
+              errmsg = "While making PlW timestream: " + STRING(j) + " " $
+                       + errmsg
+              GOTO, err_handler
+           ENDIF
+        ENDFOR
+     ENDIF
+
+     ;;Now replace the signal in the output
+     ;;This is a bit messy because tout doesn't have all the same
+     ;; channels, missing things on the sky
+     in_chans = (*tods[i]).chan
+     wpresent = WHERE_ARRAY( in_chans, tout.chan, npresent )
+     IF npresent NE tout.nchan THEN BEGIN
+        wmissing = MISSING( minuend.chan, subtrahend.chan )
+        errmsg = "Missing channels in input tod found in simulated one: "+$
+                 STRJOIN( tout.chan[wmissing],',')
+        GOTO, err_handler
+     ENDIF
+     min_sort = SORT( in_chans )
+     wunsort = WHERE( in_chans NE in_chans[min_sort], nunsort )
+     IF nunsort EQ 0 THEN BEGIN
+        ;;Already checked they are all present, so no need to verify output
+        idxs = VALUE_LOCATE( in_chans, tout.chan )
+     ENDIF ELSE BEGIN
+        ;;So, sort by hand.  Sigh
+        idxs = min_sort[ VALUE_LOCATE( in_chans[min_sort], tout.chan ) ]
+     ENDELSE
+     (*tods[i]).signal[ idxs, * ] = tout.signal
+
+     ;;Now add noise
+     in_bands = STRUPCASE( STRMID(in_chans[idxs],0,3) )
+     IF inoise[0] NE 0.0 THEN BEGIN
+        w250n = WHERE( in_bands  EQ 'PSW', n250n )
+        IF n250n NE 0 THEN BEGIN
+           noise = inoise[0]*RANDOMN(seed,n250n,(*tods[i]).nsamps)
+           IF do_fpsw THEN $
+              noise += INTERPOL( fpsw, ftime, (*tods[i]).samptime) ## $
+                       REPLICATE(1.0,n250n)
+           (*tods[i]).signal[idxs[w250n],*] += TEMPORARY(noise)
+        ENDIF
+     ENDIF
+     IF inoise[1] NE 0.0 THEN BEGIN
+        w350n = WHERE( in_bands  EQ 'PMW', n350n )
+        IF n350n NE 0 THEN BEGIN
+           noise = inoise[1]*RANDOMN(seed,n350n,(*tods[i]).nsamps)
+           IF do_fpmw THEN $
+              noise += INTERPOL( fpmw, ftime, (*tods[i]).samptime) ## $
+                       REPLICATE(1.0,n350n)
+           (*tods[i]).signal[idxs[w350n],*] += TEMPORARY(noise)
+        ENDIF
+     ENDIF
+     IF inoise[2] NE 0.0 THEN BEGIN
+        w500n = WHERE( in_bands  EQ 'PLW', n500n )
+        IF n500n NE 0 THEN BEGIN
+           noise = inoise[2]*RANDOMN(seed,n500n,(*tods[i]).nsamps)
+           IF do_fplw THEN $
+              noise += INTERPOL( fplw, ftime, (*tods[i]).samptime) ## $
+                       REPLICATE(1.0,n500n)
+           (*tods[i]).signal[idxs[w500n],*] += TEMPORARY(noise)
+        ENDIF
+     ENDIF
+  END
+  
+  success = 1b
+  RETURN
+
+err_handler:
+  IF KEYWORD_SET(verbose) THEN MESSAGE,errmsg,/INF
+  RETURN
+
+END

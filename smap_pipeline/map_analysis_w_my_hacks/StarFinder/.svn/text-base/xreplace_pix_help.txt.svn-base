@@ -1,0 +1,29 @@
+  XReplace_Pix help page
+
+
+  GENERAL DESCRIPTION
+
+  The XReplace_Pix widget replaces bad values in a given image
+  with the median of the good data in a suitable neighborhood of
+  each bad pixel.
+    
+ 
+
+  CONTROLS/BUTTONS
+
+  'Read bad pixels':
+      Enter name of FITS file containing a binary mask of bad
+      pixels, marked by 0s. The bad pixels array must have the
+      same size as the input image.
+
+  'Display Options':
+      Modify the display options of the currently displayed image.
+
+  'Replace':
+      Replace bad pixels.
+
+  'Help':
+      Display this help page.
+
+  'Exit':
+      Quit XHelp.

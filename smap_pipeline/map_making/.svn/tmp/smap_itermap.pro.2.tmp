@@ -1,0 +1,1311 @@
+;+
+; procedure smap_itermap.pro
+; Sep 24, 2009
+; Gaelen Marsden (gmarsden@phas.ubc.ca)
+;
+;
+; SMAP_ITERMAP, tod_ptrs, mapparam, map250, map350, map500, $
+;               ITERMAP_PARAMS=itermap_params, PROPERROR=properror, $
+;               FIXEDPARAMS=fixedparams, FIXEDPARDIR=fixedpardir, $
+;               BADBOLOS=badbolos,$
+;               EXCLUDEMASK=excludemask, SAVEMAPS=savemaps, $
+;               SAVEPARAMS=saveparams, SAVEMAPDIR=savemapdir, $
+;               SUCCESS=success, ERRMSG=errmsg, VERBOSE=verbose, $
+;               EXNAME=exname, NO250=no250, NO350=no350, NO500=no500,$
+;               DEGLITCHINFO=deglitchinfo
+;
+; Builds maps at all 3 bands by iteratively fitting polynomials to the
+; time streams, detector gains and detector weights. On each
+; iteration, the current map is subtracted from the time stream before
+; the fitting step. The iteration where the fitting of each of poly,
+; gains and weights is introduced can be set separately. 
+;
+;
+; INPUTS:
+;
+;   tod_ptrs:     array of pointers to tod structures
+;   mapparam:     map parameter structure
+;
+;  optional keywords:
+;
+;   ITERPARAMS:   structure containing map-making parameters (see below)
+;   PROPERROR:    error map is estimated from time-stream variances
+;                 instead of pixel sample variance
+;   BADBOLOS:     string array of bolometers to ignore
+;   EXCLUDEMASK:  string array of mask bit names to exclude
+;   SAVEMAPS:     if set, save diagnostic map output 
+;   SAVEPARAMS:   if set, save diagnostic params output
+;   SAVEMAPDIR:   output directory for diagnostics files
+;   VERBOSE:      if set, code is "chatty"
+;   NO250/NO350/N0500 : Don't make the map in this band.  Note you
+;                        still have to provide the dummy argument
+;
+; OUTPUTS:
+;
+;   map250:       final PSW map structure
+;   map350:       final PMW map structure
+;   map500:       final PLW map structure
+;
+; OPTIONAL OUTPUTS:
+; 
+;   SUCCESS:      if 0B, problem was encoutered
+;   ERRMSG:       if success EQ 0B, record error message here
+;   DEGLITCHINFO: if second level deglitching is on, this structure
+;                  returns information about what was masked.  This
+;                  is a structure that contains:
+;                    .nglitches : number of 2nd level deglitches
+;                    .nfiles:   number of files
+;                    .filenames: short filename array 
+;                    .bbids: bbid array (same order as filenames)
+;                    .obsids: obsid array (same order as filenames)
+;                    .nbols: Number of bolometers
+;                    .bolometers: Bolometer names
+;                    .samples: a subarray of structures identifying
+;                       masked samples:
+;                       .fileidx: Index into file/bbid/obsid arrays
+;                       .bolindex: Bolometer index
+;                       .sample: Which timesample is flagged
+;                  Note that obsids/bbids are not unique, even in combination!
+;
+; ITERPARAMS KEYWORD:
+;
+;   The ITERPARAMS structure should contain these tagnames:
+;
+;     * niter:       number of iterations to perform
+;     * first_offs:  first iteration on which to perform offset (poly) fitting
+;     * first_gain:  first iteration on which to perform gains fitting
+;     * first_wt:    first iteration on which to perform weights fitting
+;     * fixed_nt:    fixed number of offset terms
+;     * nterms:      number of terms in poly fit (if fixed_nt-1)
+;                    (poly order = nterms - 1)
+;     * nt_scale:    scale (in sec) for order of polynomial (if fixed_nt=0)
+;     * min_hits:    min number of hits in pixel required for non-NAN
+;                     in map
+;     * first_clip:  First iteration where 2nd level deglitching is
+;                     applied.  Set to 0 to turn off. (default 0)
+;     * clipsigma:   Sigma to reject, if deglitching is on.  In terms
+;                     of the individual scan RMS.  (default: 10)
+;     * grow_clip:   Amount to 'grow' masked samples in deglitching,
+;                     in timesamples (default: 3).
+;   Setting first_[offs|gain|wt|nt] = 0 disables fitting
+;   Names not included in structure will use default values.
+;    
+; 
+; A NOTE ON DIAGNOSTICS:
+;
+; Currently, the (optional) diagnostics are output to a pair of FITS
+; files for each band. All images are cubes, with the 3rd dimension
+; spanning iteration number. These are large files!
+;
+;   diagnostic_maps:
+;     * extension [1] is signal map
+;     * extension [2] is error map
+;     * extension [3] is exposure (hits) map
+;
+;   diagnostic_params:
+;     * extension [1] is weights parameters [nscan X nbolo X niter]
+;     * extension [2] is gains parameters [1 X nbolo X niter]
+;     * extension [3+i] is order `i' of poly fit [nscan X nbolo X niter]
+;
+; 
+; TODO:
+;
+;   * fix up error checking! (it's weak and untested)
+;   * add option for re-reading data from disk instead of keeping in
+;     memory
+;
+;
+; HISTORY:
+;
+; 2009-09-24 (gm): initial version
+; 2009-10-30 (gm): initial upload to svn
+; 2009-11-02 (gm): check for NANs in map in ITERMAP_CALCWEIGHTS
+;                  modify diagnostics file format
+; 2009-11-03 (gm): fix map outputs (wasn't setting map??? = map at end)
+;                  add polynomial fitting (instead of just offset)
+; 2009-11-04 (gm): change format of iteration params (k.w. instead of glob.)
+; 2009-11-11 (gm): change format of data input (tod_ptrs instead of filelist)
+; 2009-11-17 (gm): do makemap loop in call to C, use SMAP_GETMAP_XY
+; 2009-11-18 (gm): update format of diagnostics files
+; 2009-11-23 (gm): add missing factor of 1/sqrt(n) in error map
+; 2009-11-24 (gm): add PROPERROR keyword (propagated error maps)
+; 2009-11-25 (gm): data masking now done same as other routines
+;                  separate map and param diagnostics files
+; 2010-01-20 (gm): add BADBOLOS keyword
+; 2010-11-22 (gm): add ability to set offset poly order based on
+;                  length of time stream (see iterparams.fixed_nt)
+; 2011-02-28 (ac): Add 'grow' ability for deglitching, add to header
+;                   outputs, add mechanism for specifying what was
+;                   masked.
+;-
+
+FUNCTION ITERMAP_ISGOOD, tod, bind, excludemask, min_scanfrac, $
+                         BADBOLOS=badbolos
+
+  ; check if signal and mask are goood 
+
+  COMPILE_OPT IDL2, HIDDEN
+
+  val = REPLICATE(1B, tod.nsamps)
+
+  ; test signal
+  val = val AND FINITE(tod.signal[bind,*])
+
+  IF TAG_EXIST(tod, 'mask_bits', /TOP_LEVEL) AND $
+     N_ELEMENTS(excludemask) NE 0 THEN $
+        mapmaskbits = construct_mask_bitmask(excludemask, tod.mask_bits)
+
+  IF N_ELEMENTS( mapmaskbits ) NE 0 && $
+     mapmaskbits NE 0 && $
+     TAG_EXIST(tod,'mask',/TOP_LEVEL) $
+  THEN $
+     val = val AND ( (tod.mask[bind,*] AND mapmaskbits) EQ 0 )
+
+  ; check badbolos
+  IF KEYWORD_SET(badbolos) THEN $
+     val = val AND (TOTAL(tod.chan[bind] EQ badbolos) EQ 0)
+
+  ;; test mask
+  ;val = val AND ((mask AND 2048L) NE 2048L) ; glitch?
+  ;val = val AND ((mask AND   24L) EQ    0L) ; saturation?
+
+  ; test min_scanfrac -- set all to 0 if number of good samples smaller than
+  ; nsamp * min_scanfrac
+  temp = WHERE(val, ngoodsamp)
+  IF ngoodsamp LT min_scanfrac * tod.nsamps THEN val[*] = 0B
+
+  RETURN, val
+END
+
+FUNCTION ITERMAP_SETUPDEGLITCH, tods, SUCCESS=success, ERRMSG=errmsg
+  COMPILE_OPT IDL2, HIDDEN
+  
+  success = 0b
+
+  ;;Get first tod to get list of bolometers, etc.
+  tod_type = SIZE( tods, /TNAME )
+  IF tod_type EQ 'STRING' THEN BEGIN
+     curr_tod = smap_readtod(tods[0], SUCCESS=rsuccess, ERRMSG=errmsg)
+     IF rsuccess EQ 0 THEN BEGIN
+        success = 0B
+        errmsg = "Error reading tod from "+tods[0]+": "+errmsg
+        RETURN,!VALUES.F_NAN
+     ENDIF
+  ENDIF ELSE curr_tod = *tods[0]
+
+  ntods = N_ELEMENTS(tods)
+  chans = curr_tod.chan[ SORT(curr_tod.chan) ]
+  ;;Overall structure, samples left off for now
+  deglitchinfo = { nglitches: 0L, nfiles: ntods, $
+                   filenames: STRARR(ntods),$
+                   bbids: ULONARR(ntods), obsids: ULONARR(ntods),$
+                   nbols: N_ELEMENTS(chans), bolometers: chans }
+  success = 1b
+  RETURN,deglitchinfo
+END
+
+
+PRO ITERMAP_CALCWEIGHTS, mapparam, tods, x_ptrs, y_ptrs, boloind, map, $
+                         dooffs, dogain, doclip, clipsigma, $
+                         offsets, gains, weights, ntermsbyscan, excludemask, $
+                         min_scanfrac, grow_clip, BADBOLOS=badbolos,$
+                         VERBOSE=verbose, SUCCESS=success, ERRMSG=errmsg
+
+  ;; calculate offsets, gains and weights for current data given
+  ;; current map. Behaviour depends on dooffs, dogain and dowght
+
+  ;; note: offsets and weights are per scan per detector
+  ;;       gains are per detector
+
+  COMPILE_OPT IDL2, HIDDEN
+
+  IF KEYWORD_SET(verbose) THEN $
+     MESSAGE, "calculating offsets, gains and weights", /INF
+
+  nscans = mapparam.nscans
+  nchans = N_ELEMENTS(boloind)
+  nterms = N_ELEMENTS(offsets[0,0,*])
+
+  ;; keep track of which elements are finite for normalizing at end
+  goodgains   = BYTARR(nchans)
+
+  ;; gain accumulators
+  gainacc_numer = FLTARR(nchans)
+  gainacc_denom = FLTARR(nchans)
+
+  ;; loop over scans
+  tod_type = SIZE( tods, /TNAME )
+  FOR iscan=0,nscans-1 DO BEGIN
+
+     ;; read data if necessary
+     IF tod_type EQ 'STRING' THEN BEGIN
+        curr_tod = smap_readtod(tods[iscan], SUCCESS=rsuccess, ERRMSG=errmsg)
+        IF rsuccess EQ 0 THEN BEGIN
+           success = 0B
+           errmsg = "Error reading tod from "+tods[i]+": "+errmsg
+           RETURN
+        ENDIF
+     ENDIF ELSE $
+        curr_tod = *tods[iscan]
+
+     IF iscan EQ 0 THEN BEGIN
+        bolometerlist = curr_tod.chan[boloind]
+     ENDIF
+
+     ;; loop over bolos
+     FOR i=0,nchans-1 DO BEGIN
+        
+        this_bolindex = WHERE( curr_tod.chan EQ bolometerlist[i],$
+                               nthisbol )
+        IF nthisbol EQ 0 THEN BEGIN
+           errmsg = "Couldn't find bolometer: "+bolometerlist[i]+" in tod: "+$
+                    curr_tod.shortfile
+           success = 0b
+           RETURN
+        ENDIF
+        IF nthisbol GT 1 THEN BEGIN
+           errmsg = "Multiple matches to bolometer: "+bolometerlist[i]+$
+                    " in tod: "+curr_tod.shortfile
+           success = 0b
+           RETURN
+        ENDIF
+        this_bolindex = this_bolindex[0]
+
+
+        ;; find good data points
+        wkeep = WHERE( ITERMAP_ISGOOD(curr_tod, this_bolindex, $
+                                      excludemask, min_scanfrac, $
+                                      BADBOLOS=badbolos), $
+                       nkeep )
+
+        ;; skip loop if no good samples
+        IF nkeep EQ 0 THEN CONTINUE
+
+        signal = curr_tod.signal[this_bolindex,wkeep]
+
+        ;; time relative to time[0] (consistent with MAKEMAP)
+        
+        time   = curr_tod.samptime[wkeep] - $
+                 curr_tod.samptime[0]
+
+        IF tod_type EQ 'STRING' THEN BEGIN
+           AD2XY, curr_tod.ra[this_bolindex,wkeep], $
+                  curr_tod.dec[this_bolindex,wkeep], $
+                  map.astrometry, $
+                  thisx, thisy
+        ENDIF ELSE BEGIN
+           thisx = (*x_ptrs[iscan])[this_bolindex,wkeep]
+           thisy = (*y_ptrs[iscan])[this_bolindex,wkeep]
+        ENDELSE
+
+        ; reject samples outside of map area
+        mkeep = WHERE(thisx GE 0 AND thisx LT map.xsize AND $
+                      thisy GE 0 AND thisy LT map.ysize, nmkeep)
+
+        IF nmkeep EQ 0 THEN CONTINUE
+
+        xpix   = ROUND(thisx[mkeep])
+        ypix   = ROUND(thisy[mkeep])
+
+        signal = signal[mkeep]
+        time   = time[mkeep]
+        model  = map.image[xpix,ypix]
+        
+        ;; skip bad map pixels
+        mkeep = WHERE(FINITE(model), nmkeep)
+        
+        ;; skip loop if no good map pixels
+        IF nmkeep EQ 0 THEN CONTINUE
+
+        signal = signal[mkeep]
+        time   = time[mkeep]
+        model  = model[mkeep]
+        
+        ;;Time stream clipping
+        IF doclip THEN BEGIN
+           polyfit = DBLARR(nmkeep)
+           FOR k=0,ntermsbyscan[iscan]-1 DO $
+              polyfit += offsets[iscan,i,k] * time^DOUBLE(k)
+           
+           resid = signal - (model / gains[i] + polyfit)
+
+           scan_rms = SQRT(1.0 / weights[iscan,i])
+           IF grow_clip LT 2 THEN BEGIN
+              ;;Simple case, not growing masked areas
+              clipkeep = WHERE(ABS(resid) LE $
+                               clipsigma * scan_rms,$
+                               nclipkeep, NCOMPLEMENT=nclipremove)
+              IF nclipkeep LT (ntermsbyscan[iscan]+2) THEN CONTINUE
+              IF nclipremove NE 0 THEN BEGIN
+                 signal = signal[clipkeep]
+                 time   = time[clipkeep]
+                 model  = model[clipkeep]
+                 nmkeep = nclipkeep
+              ENDIF
+           ENDIF ELSE BEGIN
+              ;;Grow masked region around each masked object
+              clipremove = WHERE(ABS(resid) GT $
+                                 clipsigma * scan_rms, $
+                                 nclipremove, NCOMPLEMENT=nclipkeep)
+              IF nclipkeep LT (ntermsbyscan[iscan]+2) THEN CONTINUE ;;Skip scan
+              IF nclipremove GT 0 THEN BEGIN
+                 rem = BYTARR(nmkeep)
+                 rem[clipremove] = 1b
+                 rem = DILATE(rem,REPLICATE(1b,grow_clip))
+                 rem[clipremove] = 1b ;; dilate can misbehave at the edges
+                 clipkeep = WHERE( ~TEMPORARY(rem), nclipkeep, $
+                                   NCOMPLEMENT=nclipremove )
+                 IF nclipkeep LT (ntermsbyscan[iscan]+2) THEN CONTINUE
+                 signal = signal[clipkeep]
+                 time   = time[clipkeep]
+                 model  = model[clipkeep]
+                 nmkeep = nclipkeep
+              ENDIF
+           ENDELSE
+
+        ENDIF  ;; end clip
+
+        ;; offsets (poly fit to residuals)
+        IF dooffs THEN BEGIN
+           offsets[iscan,i,0:ntermsbyscan[iscan]-1] = $
+              POLY_FIT(time, signal - model / gains[i], $
+                       ntermsbyscan[iscan]-1)
+        ENDIF
+        
+        ;; build poly based on offsets
+        polyfit = DBLARR(nmkeep)
+        FOR k=0,ntermsbyscan[iscan]-1 DO $
+           polyfit += offsets[iscan,i,k] * time^DOUBLE(k)
+        
+
+        ;; weights are inverse variance of (time-stream 
+        ;; - map) residuals
+        
+        sigmodel = model / gains[i] + polyfit
+        var = MEAN( (signal - sigmodel)^2 )
+
+        ;;var = $
+        ;;   MEAN(signal^2) * gains[i]^2+ $
+        ;;   MEAN(model^2) + $
+        ;;   offsets[iscan,i]^2 * gains[i]^2 + $
+        ;;   (-2) * MEAN(signal * model) * gains[i] + $
+        ;;   (-2) * MEAN(signal) * offsets[iscan,i] * gains[i]^2 + $
+        ;;   2 * MEAN(model) * offsets[iscan,i] * gains[i]
+        
+        weights[iscan,i] = 1.0 / var
+        ;; end weights
+        
+        ;; gains
+        IF dogain THEN BEGIN
+           gainacc_numer[i] += TOTAL(model^2) 
+           gainacc_denom[i] += $
+              TOTAL(model * signal) - TOTAL(model * polyfit)
+           goodgains[i] = 1B
+        ENDIF                   ; end gains
+        
+     ENDFOR                     ; end loop over bolometers
+  ENDFOR                        ; end loop over scans
+
+  ;; calculate & normalize gains
+  IF dogain THEN BEGIN
+     gind = WHERE(goodgains EQ 1B, ng)
+     IF ng GT 0 THEN BEGIN
+        gains[gind] = gainacc_numer[gind] / gainacc_denom[gind]
+        gains[gind] /= MEAN(gains[gind])
+     ENDIF
+  ENDIF
+  
+  success = 1B
+
+END
+
+
+PRO ITERMAP_MAKEMAP, mapparam, tods, x_ptrs, y_ptrs, boloind, map, $
+                     offsets, gains, weights, dowght, doclip, clipsigma, $
+                     min_hits, ntermsbyscan, excludemask, min_scanfrac, $
+                     grow_clip, GETDEGLITCH=getdeglitch, $
+                     DEGLITCHINFO=deglitchinfo, GLITCHSAMPLES=glitchsamples,$
+                     BADBOLOS=badbolos, PROPERROR=properror, $
+                     SUCCESS=success, ERRMSG=errmsg, $
+                     VERBOSE=verbose
+
+  ;; create map based on current values of offsets, gains and weights
+
+  COMPILE_OPT IDL2, HIDDEN
+
+  IF KEYWORD_SET(verbose) THEN $
+     MESSAGE, "building map", /INF
+
+  nscans = mapparam.nscans
+  nchans = N_ELEMENTS(boloind)
+  nterms = N_ELEMENTS(offsets[0,0,*])
+
+  IF doclip THEN oldmap = map.image
+
+  ;; rezero maps
+  map.image    = 0.0
+  map.error    = 0.0
+  map.exposure = 0uL
+
+  ;; create local copies of maps -- can't use maps in the map
+  ;; structure b/c they get copied by value [I think]
+  signalmap   = map.image
+  errormap    = signalmap
+  weightmap   = signalmap
+  exposuremap = map.exposure
+  
+  ;; loop over scans
+  tod_type = SIZE( tods, /TNAME )
+
+  ;;Basic structure for deglitching sample information
+  deglitchsample = { fileidx: 0U, bolidx: 0U, samp: 0U }
+
+  FOR iscan=0,nscans-1 DO BEGIN
+
+     ;; read data if necessary
+     IF tod_type EQ 'STRING' THEN BEGIN
+        curr_tod = smap_readtod(tods[iscan], SUCCESS=rsuccess, ERRMSG=errmsg)
+        IF rsuccess EQ 0 THEN BEGIN
+           success = 0B
+           errmsg = "Error reading tod from "+tods[i]+": "+errmsg
+           RETURN
+        ENDIF
+     ENDIF ELSE $
+        curr_tod = *tods[iscan]
+
+     ;;Make list of bolometers we will loop over
+     IF iscan EQ 0 THEN BEGIN
+        bolometerlist = curr_tod.chan[boloind]
+     ENDIF
+
+     IF getdeglitch THEN BEGIN
+        deglitchinfo.filenames[iscan] = curr_tod.shortfile
+        deglitchinfo.bbids[iscan] = curr_tod.bbid
+        deglitchinfo.obsids[iscan] = curr_tod.obsid
+     ENDIF
+
+     ;; loop over bolos
+     FOR i=0,nchans-1 DO BEGIN
+        
+        ;;Find position of this bolometer in this channel
+        ;;That is, we try -not- to assume that the bolometers
+        ;; are in the same order in all tods!
+        this_bolindex = WHERE( curr_tod.chan EQ bolometerlist[i],$
+                               nthisbol )
+        IF nthisbol EQ 0 THEN BEGIN
+           errmsg = "Couldn't find bolometer: "+bolometerlist[i]+" in tod: "+$
+                    curr_tod.shortfile
+           success = 0b
+           RETURN
+        ENDIF
+        IF nthisbol GT 1 THEN BEGIN
+           errmsg = "Multiple matches to bolometer: "+bolometerlist[i]+$
+                    " in tod: "+curr_tod.shortfile
+           success = 0b
+           RETURN
+        ENDIF
+        this_bolindex = this_bolindex[0]
+
+        ;; find good data points
+        wkeep = WHERE( ITERMAP_ISGOOD(curr_tod, this_bolindex, $
+                                      excludemask, min_scanfrac, $
+                                      BADBOLOS=badbolos), nkeep )
+
+        IF nkeep GT 0 THEN BEGIN
+           ;; build poly based on offsets
+           polyfit = DBLARR(nkeep)
+           time = curr_tod.samptime[wkeep] - $
+                  curr_tod.samptime[0]
+           FOR k=0,ntermsbyscan[iscan]-1 DO $
+              polyfit += offsets[iscan,i,k] * time^DOUBLE(k)
+           
+           signal = gains[i] * $
+                    (curr_tod.signal[this_bolindex,wkeep] - polyfit)
+
+           IF tod_type EQ 'STRING' THEN BEGIN
+              AD2XY, curr_tod.ra[this_bolindex,wkeep], $
+                     curr_tod.dec[this_bolindex,wkeep], $
+                     map.astrometry, $
+                     thisx, thisy
+           ENDIF ELSE BEGIN
+              thisx = (*x_ptrs[iscan])[this_bolindex,wkeep]
+              thisy = (*y_ptrs[iscan])[this_bolindex,wkeep]
+           ENDELSE
+           
+           ; reject samples outside of map area
+           wkeep = WHERE(thisx GE 0 AND thisx LT map.xsize AND $
+                         thisy GE 0 AND thisy LT map.ysize, nkeep)
+
+           IF nkeep EQ 0 THEN CONTINUE
+
+           xpix   = ROUND(thisx[wkeep])
+           ypix   = ROUND(thisy[wkeep])
+
+           signal = signal[wkeep]
+
+           IF doclip THEN BEGIN
+              resid = REFORM(signal - oldmap[xpix,ypix])
+
+              scan_rms = SQRT(1.0 / weights[iscan,i])
+              ;;The variance of the signal is 1.0/weights[iscan,i]
+              IF grow_clip LT 2 THEN BEGIN
+                 ;;Simple case, not growing masked areas
+                 clipkeep = WHERE(ABS(resid) LE $
+                                  clipsigma * scan_rms,$
+                                  nclipkeep, NCOMPLEMENT=nclipremove,$
+                                  COMPLEMENT=clipremove )
+              ENDIF ELSE BEGIN
+                 ;;Grow masked region around each masked object
+                 clipremove = WHERE(ABS(resid) GT $
+                                    clipsigma*scan_rms,$
+                                    nclipremove, NCOMPLEMENT=nclipkeep)
+                 IF nclipremove GT 0 THEN BEGIN
+                    rem = BYTARR(N_ELEMENTS(signal))
+                    rem[clipremove] = 1b
+                    rem = DILATE(rem,REPLICATE(1b,grow_clip))
+                    rem[clipremove] = 1b ;; dilate can misbehave at the edges
+                    clipkeep = WHERE( ~TEMPORARY(rem), nclipkeep, $
+                                      NCOMPLEMENT=nclipremove,$
+                                      COMPLEMENT=clipremove )
+                 ENDIF
+              ENDELSE
+
+              ;;Mark clipped samples if present
+              IF nclipremove GT 0 THEN BEGIN
+                 IF getdeglitch THEN BEGIN
+                    ;;Mark samples
+                    bolname = curr_tod.chan[this_bolindex]
+                    chanpos = VALUE_LOCATE( deglitchinfo.bolometers,$
+                                            bolname )
+                    IF (chanpos LT 0) || (chanpos GE deglitchinfo.nbols) || $
+                       (deglitchinfo.bolometers[chanpos] NE bolname) $
+                       THEN BEGIN
+                       success = 0B
+                       errmsg = "Could not find current bolometer "+$
+                                curr_tod.chan[i]+" in list of bolometers"+$
+                                " from first TOD "+deglitchinfo.filenames[0]
+                       RETURN
+                    ENDIF
+
+                    newdegsample = REPLICATE(deglitchsample,nclipremove)
+                    newdegsample.fileidx = iscan
+                    newdegsample.bolidx  = chanpos
+                    newdegsample.samp    = wkeep[clipremove]
+
+                    ;;This is quite inefficient, but it's hard to
+                    ;; see a better way without knowing how many we
+                    ;; are going to reject ahead of time
+                    IF N_ELEMENTS(glitchsamples) EQ 0 THEN $
+                       glitchsamples=TEMPORARY(newdegsample) ELSE $
+                          glitchsamples=[glitchsamples,TEMPORARY(newdegsample)]
+
+                 ENDIF
+
+                 ;;If we have fewer good samples than number of poly
+                 ;; terms plus a bit, this isn't going to work, so
+                 ;; skip the entire scan.  Also, we have a minimum
+                 ;; scan fraction requirement.  However, we don't mark
+                 ;; these -- not sure if that is a mistake
+                 IF nclipkeep LT ntermsbyscan[iscan]+2 OR $
+                    nclipkeep LT min_scanfrac*nkeep THEN CONTINUE
+
+                 ;;Do the actual removal
+                 signal = signal[clipkeep]
+                 xpix   = xpix[clipkeep]
+                 ypix   = ypix[clipkeep]
+                 nkeep  = nclipkeep
+              ENDIF
+
+
+              
+           ENDIF            ;; end clip
+           
+           ;; loop over data samples
+           
+           weight = REPLICATE(DOUBLE(weights[iscan,i]), nkeep)
+           npix = LONG(map.xsize) * LONG(map.ysize)
+           pixind = xpix + LONG(ypix * map.xsize)
+
+           doweight = LONG(dowght)
+
+                                ; verify types of inputs
+           IF (SIZE(signal,      /TNAME) NE 'DOUBLE' OR $
+               SIZE(weight,      /TNAME) NE 'DOUBLE' OR $
+               SIZE(pixind,      /TNAME) NE 'LONG' OR $
+               SIZE(nkeep,       /TNAME) NE 'LONG' OR $
+               SIZE(signalmap,   /TNAME) NE 'DOUBLE' OR $
+               SIZE(errormap,    /TNAME) NE 'DOUBLE' OR $
+               SIZE(weightmap,   /TNAME) NE 'DOUBLE' OR $
+               SIZE(exposuremap, /TNAME) NE 'ULONG' OR $
+               SIZE(npix,        /TNAME) NE 'LONG' OR $
+               SIZE(doweight,    /TNAME) NE 'LONG') THEN BEGIN
+              success = 0B
+              errmsg = "Inputs to 'smap_accumulatemap_extern' are of "+$
+                       "incorrect type."
+              RETURN
+           ENDIF
+
+           status = CALL_EXTERNAL(SMAP_GET_CALLEXT(), $
+                                  'smap_accumulatemap_extern', $  
+                                  signal, weight, pixind, nkeep, $
+                                  signalmap, errormap, $
+                                  weightmap, exposuremap, npix, doweight, $
+                                  VALUE=[0,0,0,1,0,0,0,0,1,1], $
+                                  /CDECL)
+
+           IF ~status THEN BEGIN
+              success = 0B
+              errmsg = "Call to 'smap_accumulatmap_extern' failed."
+              RETURN
+           ENDIF
+
+
+           ;;***** loop replaced by CALL_EXTERNAL above *****
+           ;;FOR j=0L,nkeep-1 DO BEGIN
+           ;;    map.image[xpix[j],ypix[j]] += $
+           ;;       signal[j] * weights[iscan,i]
+           ;;    map.error[xpix[j],ypix[j]] += $
+           ;;       signal[j]^2 * weights[iscan,i]
+           ;;    map.exposure[xpix[j],ypix[j]]++
+           ;;    weightmap[xpix[j],ypix[j]] += weights[iscan,i]
+                                ;ENDFOR
+        ENDIF                   ; end nkeep test
+        
+     ENDFOR                     ; end loop over bolometers
+  ENDFOR                        ; end loop over scans
+
+  ;; copy back onto map structure
+  map.image    = TEMPORARY(signalmap)
+  map.error    = TEMPORARY(errormap)
+  map.exposure = TEMPORARY(exposuremap)
+
+  ;; finalize
+  goodpix = WHERE(map.exposure GE min_hits, ngood, COMPLEMENT=badpix)
+
+  ;; good pixels
+  IF ngood GT 0 THEN BEGIN
+
+     IF dowght THEN BEGIN       ; weighted mean
+
+        map.image[goodpix] /= weightmap[goodpix]
+
+        IF KEYWORD_SET(properror) THEN BEGIN
+           map.error[goodpix] = 1.0 / SQRT(weightmap[goodpix])
+        ENDIF ELSE BEGIN
+           map.error[goodpix] = $
+              SQRT( (map.error[goodpix] / weightmap[goodpix] - $
+                     map.image[goodpix]^2) / (map.exposure[goodpix] - 1) )
+        ENDELSE
+
+     ENDIF ELSE BEGIN           ; unweighted mean
+
+        map.image[goodpix] /= map.exposure[goodpix]
+
+        IF KEYWORD_SET(properror) THEN BEGIN
+           map.error[goodpix] = $
+              SQRT(weightmap[goodpix] / (map.exposure[goodpix] - 1) )
+        ENDIF ELSE BEGIN
+           map.error[goodpix] = $
+              SQRT( (map.error[goodpix] / map.exposure[goodpix] - $
+                     map.image[goodpix]^2) / (map.exposure[goodpix] - 1) )
+
+        ENDELSE
+
+     ENDELSE
+
+  ENDIF
+
+  ;; bad pixels
+  IF ngood LT N_ELEMENTS(map.exposure) THEN BEGIN
+     map.image[badpix]    = !VALUES.D_NAN
+     map.error[badpix]    = !VALUES.D_NAN
+  ENDIF
+  
+  success = 1B
+
+END
+
+
+FUNCTION ITERMAP_MAKEHEADER, map, niter, first_offs, first_gain, $
+                             first_wt, fixed_nt, nterms, nt_scale, min_hits,$
+                             first_clip, clipsigma, grow_clip
+
+  COMPILE_OPT IDL2, HIDDEN
+
+  ;; create a header for map structure
+  ;; some of this copied form write_smap_fitsmap.pro
+
+  ;; create basic header
+  dummy = DBLARR(map.xsize, map.ysize, niter)
+  MKHDR, header, dummy
+
+  ;; add astrometry
+  PUTAST, header, map.astrometry
+
+  ;; other info
+  SXADDPAR, header, 'DESC', map.bands
+  SXADDPAR, header, 'WAVELN', map.lambda
+
+  ;; itermap info
+  SXADDPAR, header, 'NITER', niter, "Number of iterations"
+  SXADDPAR, header, 'FIRSTO', first_offs, $
+            "First iteration where offsets are calculated"
+  SXADDPAR, header, 'FIRSTG', first_gain, $
+            "First iteration where gains are calculated"
+  SXADDPAR, header, 'FIRSTW', first_wt, $
+            "First iteration where weights are calculated"
+  IF first_clip NE 0 THEN BEGIN
+     SXADDPAR, header, 'DOCLIP', 1b, '2nd level deglitching used'
+     SXADDPAR, header, 'FIRSTCLP',first_clip,$
+               "First iteration where clipping is applied"
+     SXADDPAR, header, 'CLIPSIG',clipsigma,$
+               "Clipping sigma in terms of scan RMS"
+     SXADDPAR, header, 'CLIPGROW', grow_clip,$
+               "Clipping growing radius"
+  ENDIF ELSE BEGIN
+     SXADDPAR, header, 'DOCLIP', 0b, '2nd level deglitching used'
+  ENDELSE
+
+  IF fixed_nt THEN $
+     SXADDPAR, header, 'NTERMS', nterms, $
+               "Number of terms in polynomial fit" $
+  ELSE $
+     SXADDPAR, header, 'NTSCALE', nt_scale, $
+               "Time scale for nterms in poly fit"
+
+  SXADDPAR, header, 'MINHITS', min_hits, $
+            "Min. # pixel hits to be included in map"
+
+  RETURN, header
+END
+
+
+
+PRO SMAP_ITERMAP, tods, mapparam, map250, map350, map500, $
+                  ITERMAP_PARAMS=itermap_params, PROPERROR=properror, $
+                  FIXEDPARAMS=fixedparams, FIXEDPARDIR=fixedpardir, $
+                  BADBOLOS=badbolos,$
+                  EXCLUDEMASK=excludemask, SAVEMAPS=savemaps, $
+                  SAVEPARAMS=saveparams, SAVEMAPDIR=savemapdir, $
+                  SUCCESS=success, ERRMSG=errmsg, VERBOSE=verbose, $
+                  EXNAME=exname, PARAMS_TODINDEX=params_todindex,$
+                  NO250=no250, NO350=no350, NO500=no500, $
+                  DEGLITCHINFO=deglitchinfo
+
+  COMPILE_OPT IDL2
+
+  diagmapspre   = "ITERMAP_diagnostic_maps_"
+  diagparamspre = "ITERMAP_diagnostic_params_"
+
+  IF KEYWORD_SET(savemaps)   THEN dosavemaps   = 1B ELSE dosavemaps   = 0B
+  IF KEYWORD_SET(saveparams) THEN dosaveparams = 1B ELSE dosaveparams = 0B
+  IF NOT KEYWORD_SET(savemapdir) THEN savemapdir = !SMAP_MAPS
+  IF NOT KEYWORD_SET(fixedparams) THEN fixedparams = 0
+
+  savemapdir = ADDSLASH(savemapdir)
+
+  ;; if we didn't get an exname, set it to null
+  IF ~(KEYWORD_SET(exname)) THEN exname = ''
+
+
+  ;; set up the error handling variables
+  success = 0b
+  errmsg = ''
+
+  ;; default parameter values
+  niter      = 10
+  first_offs = 1
+  first_gain = 3
+  first_wt   = 7
+  first_clip = 0
+  grow_clip  = 3
+  clipsigma  = 10.0
+  nterms     = 1
+  min_hits   = 2
+  fixed_nt   = 0
+  nt_scale   = 50.0             ; ??? is this a good default?
+
+  min_nterms = 1
+  max_nterms = 10
+
+  ;; minimum fraction of scan that must be good in order to use scan
+  min_scanfrac = 0.3
+
+  ;; read parameters from structure keyword
+  IF KEYWORD_SET(itermap_params) THEN BEGIN
+     IF TAG_EXIST(itermap_params, "niter") THEN $
+        niter      = FIX(itermap_params.niter)
+     IF TAG_EXIST(itermap_params, "first_offs") THEN $
+        first_offs = FIX(itermap_params.first_offs)
+     IF TAG_EXIST(itermap_params, "first_gain") THEN $
+        first_gain = FIX(itermap_params.first_gain)
+     IF TAG_EXIST(itermap_params, "first_wt") THEN $
+        first_wt   = FIX(itermap_params.first_wt)
+     IF TAG_EXIST(itermap_params, "first_clip") THEN $
+        first_clip = FIX(itermap_params.first_clip)
+     IF TAG_EXIST(itermap_params, "clipsigma") THEN $
+        clipsigma  = DOUBLE(itermap_params.clipsigma)
+     IF TAG_EXIST(itermap_params, "grow_clip") THEN $
+        grow_clip  = FIX(itermap_params.grow_clip)
+     IF TAG_EXIST(itermap_params, "nterms") THEN $
+        nterms     = FIX(itermap_params.nterms)
+     IF TAG_EXIST(itermap_params, "min_hits") THEN $
+        min_hits   = FIX(itermap_params.min_hits)
+     IF TAG_EXIST(itermap_params, "fixed_nt") THEN $
+        fixed_nt   = FIX(itermap_params.fixed_nt)
+     IF TAG_EXIST(itermap_params, "nt_scale") && $
+	itermap_params.nt_scale GT 0.0 THEN $
+        nt_scale   = FLOAT(itermap_params.nt_scale)
+  ENDIF
+
+  IF first_clip NE 0 AND first_clip GT niter THEN BEGIN
+     MESSAGE,"First_clip is larger than niter -- will not deglitch",/INF
+     first_clip = 0
+  ENDIF
+
+  ;; read data (if necessary)
+  
+  ;; calculate astrometry (if data in memory)
+  x_ptrs = PTRARR(mapparam.nscans)
+  y_ptrs = PTRARR(mapparam.nscans)
+
+  CASE SIZE(tods, /TNAME) OF 
+     "POINTER": BEGIN
+        first_tod = *tods[0]
+        
+        ;; pre-calculate astrometry
+        FOR iscan=0,mapparam.nscans-1 DO BEGIN
+           SMAP_GETMAP_XY, *tods[iscan], map250, map350, map500, $
+                           xvals, yvals
+           x_ptrs[iscan] = PTR_NEW(xvals)
+           y_ptrs[iscan] = PTR_NEW(yvals)
+        ENDFOR
+        
+        IF TAG_EXIST(first_tod, 'mask_bits', /TOP_LEVEL) AND $
+           N_ELEMENTS(excludemask) GT 0 THEN $
+              def_mapmaskbits = $
+           construct_mask_bitmask(excludemask, first_tod.mask_bits)        
+     END
+     "STRING": BEGIN
+        ;; read first tod
+        first_tod = SMAP_READTOD(tods[0], SUCCESS=rsuccess, ERRMSG=errmsg)
+        IF rsuccess EQ 0 THEN BEGIN
+           errmsg = "Error reading tod from "+tods[i]+": "+errmsg
+           GOTO, err_handler
+        ENDIF
+        IF TAG_EXIST(first_tod, 'mask_bits', /TOP_LEVEL) AND $
+           N_ELEMENTS(excludemask) GT 0 THEN $
+              def_mapmaskbits = $
+           construct_mask_bitmask(excludemask, first_tod.mask_bits)        
+     END
+     ELSE: BEGIN
+        errmsg = "Unexpected TOD type in smap_make_maps_naivemap: "+tod_type
+        GOTO, err_handler
+     END
+  ENDCASE
+
+  ;; get lengths of each scan for nterms calculation (if not fixed,
+  ;; otherwise use nterms)
+  IF NOT KEYWORD_SET(fixedparams) THEN BEGIN
+     IF fixed_nt THEN BEGIN
+        ntermsbyscan = REPLICATE(nterms, mapparam.nscans)
+     ENDIF ELSE BEGIN
+        ntermsbyscan = INTARR(mapparam.nscans)
+
+        CASE SIZE(tods, /TNAME) OF 
+           "POINTER": BEGIN
+              FOR s=0,mapparam.nscans-1 DO BEGIN
+                 scant = (*tods[s]).nsamps / (*tods[s]).sampfreq
+                 ntermsbyscan[s] = ROUND(scant / nt_scale)
+              ENDFOR
+           END
+           "STRING": BEGIN
+              FOR s=0,mapparam.nscans-1 DO BEGIN
+                 thistod = SMAP_READTOD(tods[s], SUCCESS=rsuccess, $
+                                        ERRMSG=errmsg)
+                 scant = thistod.nsamps / thistod.sampfreq
+                 ntermsbyscan[s] = ROUND(scant / nt_scale)
+              ENDFOR
+           END
+        ENDCASE
+        
+        ntermsbyscan = ntermsbyscan > min_nterms < max_nterms
+
+        ;; maximum number of nterms (for declaration purposes)
+        nterms = MAX(ntermsbyscan)
+     ENDELSE
+  ENDIF
+
+  ;; excludemask
+  ;;IF N_ELEMENTS(excludemask) EQ 0 THEN excludemask = 0
+
+  ;; loop over bands
+  firstcoldone = 0b ;;Set to false the first actual map making pass
+  
+  FOR icol=0,2 DO BEGIN
+     
+     ;;Skip if asked to not do this band
+     ;;continues not allowed in case statements
+     IF icol EQ 0 && KEYWORD_SET(no250) THEN CONTINUE
+     IF icol EQ 1 && KEYWORD_SET(no350) THEN CONTINUE
+     IF icol EQ 2 && KEYWORD_SET(no500) THEN CONTINUE
+
+     IF KEYWORD_SET(verbose) THEN $
+        MESSAGE, "Performing iterative map making on band '" + $
+                 mapparam.bands[icol] + "'.", /INF
+     
+     CASE icol OF
+        0: BEGIN
+           map = map250
+           boloind = WHERE(STRMID(first_tod.chan,0,3) EQ $
+                           mapparam.bands[0] AND $
+                           first_tod.islight, nchans)
+           ;;data = data250
+        END
+        1: BEGIN
+           map = map350
+           boloind = WHERE(STRMID(first_tod.chan,0,3) EQ $
+                           mapparam.bands[1] AND $
+                           first_tod.islight, nchans)
+        END
+        2: BEGIN
+           map = map500
+           boloind = WHERE(STRMID(first_tod.chan,0,3) EQ $
+                           mapparam.bands[2] AND $
+                           first_tod.islight, nchans)
+           ;;data = data500
+        END
+     ENDCASE
+     map.tod_excludemask = def_mapmaskbits
+
+     IF KEYWORD_SET(fixedparams) THEN BEGIN
+        ;; read params from diagnostics file instead of fitting for them
+        
+        IF KEYWORD_SET(fixedpardir) THEN $
+           fixedmapdir = ADDSLASH(fixedpardir) $
+        ELSE $
+           fixedmapdir = savemapdir
+
+        ;; build file name
+        diagparamsname = fixedmapdir + diagparamspre + fixedparams + $
+                         "_" + map.names + ".fits"
+
+        IF FILE_TEST(diagparamsname) EQ 0 THEN BEGIN
+           errmsg = "input parameters file '"+diagparamsname+"' not found."
+           GOTO, err_handler
+        ENDIF
+
+        RDFITS_STRUCT, diagparamsname, paramsstruct, /SILENT
+        
+        nterms_in = SXPAR(paramsstruct.hdr0, "NUMEXTEN") - 2
+        nscans_in = SXPAR(paramsstruct.hdr1, "NAXIS1")
+        nchans_in = SXPAR(paramsstruct.hdr1, "NAXIS2")
+        niter_in  = SXPAR(paramsstruct.hdr1, "NAXIS3")
+
+        IF niter_in EQ 0 THEN niter_in = 1
+
+        ;; test tod_index
+        IF KEYWORD_SET(params_todindex) THEN BEGIN
+           IF N_ELEMENTS(params_todindex) NE mapparam.nscans THEN BEGIN
+              errmsg = "wrong number of elements in TOD_INDEX"
+              GOTO, err_handler
+           ENDIF
+           
+           IF MAX(params_todindex) GE nscans_in THEN BEGIN
+              errmsg = "max element in TOD_INDEX too large for "+$
+                       "parameters file"
+              GOTO, err_handler
+           ENDIF
+        ENDIF ELSE BEGIN
+           params_todindex = INDGEN(mapparam.nscans)
+        ENDELSE
+        
+        ;; test sizes
+        IF fixed_nt AND nterms_in NE nterms THEN BEGIN
+           errmsg = "wrong number of poly terms in parameters file"
+           GOTO, err_handler
+        ENDIF ELSE BEGIN
+           nterms = nterms_in
+        ENDELSE
+        ntermsbyscan = REPLICATE(nterms, mapparam.nscans) 
+        
+        IF nchans_in NE nchans THEN BEGIN
+           errmsg = "wrong number of channels in parameters file"
+           GOTO, err_handler
+        ENDIF
+
+        offsets = FLTARR(mapparam.nscans, nchans, nterms)
+        weights = FLTARR(mapparam.nscans, nchans)
+        gains   = FLTARR(nchans)
+
+        ;; read offsets
+        FOR oi=0,nterms-1 DO $
+           offsets[*,*,oi] = $
+           paramsstruct.((3+oi)*2+1)[params_todindex,*,niter_in-1]
+
+        ;; read weights
+        weights = paramsstruct.im1[params_todindex,*,niter_in-1]
+        
+        ;; read gains
+        gains = paramsstruct.im2[0,*,niter_in-1]
+
+        ;; do offsets/gains/weights? (0 means don't do it)
+        IF first_offs NE 0 && $
+           niter GE first_offs THEN dooffs = 1B ELSE dooffs = 0B
+
+        IF first_gain NE 0 && $
+           niter GE first_gain THEN dogain = 1B ELSE dogain = 0B
+
+        IF first_wt   NE 0 && $
+           niter GE first_wt   THEN dowght = 1B ELSE dowght = 0B
+        
+        IF first_clip NE 0 && $
+           niter GE first_clip THEN doclip = 1B ELSE doclip = 0B
+
+        IF doclip AND ARG_PRESENT(deglitchinfo) THEN getdeglitch=1B ELSE $
+           getdeglitch=0B
+
+        IF getdeglitch AND ~firstcoldone THEN BEGIN
+           deglitchinfo = ITERMAP_SETUPDEGLITCH( tods, SUCCESS=ssuccess,$
+                                                 ERRMSG=errmsg )
+           IF ssuccess EQ 0b THEN BEGIN
+              success = 0b
+              errmsg = "Error setting up deglitch structure: "+errmsg
+              RETURN
+           ENDIF
+        ENDIF
+
+        ;; make map
+        ITERMAP_MAKEMAP, mapparam, tods, x_ptrs, y_ptrs, $
+                         boloind, map, offsets, gains, weights, dowght, $
+                         doclip, clipsigma, min_hits, ntermsbyscan, $
+                         excludemask, min_scanfrac, grow_clip, $
+                         GETDEGLITCH=getdeglitch, $
+                         DEGLITCHINFO=deglitchinfo, $
+                         GLITCHSAMPLES=glitchsamples,$
+                         PROPERROR=properror, BADBOLOS=badbolos, $
+                         SUCCESS=success, ERRMSG=errmsg, VERBOSE=verbose
+
+        IF ~success THEN BEGIN
+           MESSAGE, errmsg, /INF
+           RETURN
+        ENDIF
+
+     ENDIF ELSE BEGIN           ;; end fixedparams case
+
+        ;; declare arrays to store map after each iteration
+        IF dosavemaps THEN BEGIN
+                                ; images
+           imagecube = DBLARR(map.xsize, map.ysize, niter)
+           errorcube = imagecube
+           hitscube  = ULONARR(map.xsize, map.ysize, niter)
+        ENDIF
+
+        IF dosaveparams THEN BEGIN
+           ;; parameters
+           offscube  = DBLARR(mapparam.nscans, nchans, nterms, niter)
+           wghtscube = DBLARR(mapparam.nscans, nchans, niter)
+           gainscube = DBLARR(1, nchans, niter)
+        ENDIF
+
+        ;; initialize flags
+        dooffs = 0B
+        dogain = 0B
+        dowght = 0B
+        doclip = 0B
+
+        ;; initialize arrays
+        ;; assume same bolometers are present in each scan (tested above)
+        offsets = REPLICATE(0.0, mapparam.nscans, nchans, nterms)
+        weights = REPLICATE(1.0, mapparam.nscans, nchans)
+        gains   = REPLICATE(1.0, nchans)
+        
+        ;; note: assume that maps are initialized to zero
+        
+        ;; loop over iterations
+        FOR iter=0,niter-1 DO BEGIN
+           
+           IF KEYWORD_SET(verbose) THEN $
+              MESSAGE,STRING(iter+1,niter,$
+                             FORMAT='("On iteration ",I0," of ",I0)'),/INF
+           
+           ;; do offsets/gains/weights? (0 means don't do it)
+           IF first_offs NE 0 && $
+              iter+1 GE first_offs THEN dooffs = 1B
+
+           IF first_gain NE 0 && $
+              iter+1 GE first_gain THEN dogain = 1B
+
+           IF first_wt   NE 0 && $
+              iter+1 GE first_wt   THEN dowght = 1B
+
+           IF first_clip NE 0 && $
+              iter+1 GE first_clip THEN doclip = 1B
+
+           IF doclip AND ARG_PRESENT(deglitchinfo) AND iter EQ (niter-1) THEN $
+              getdeglitch=1B ELSE getdeglitch=0B
+
+           IF getdeglitch AND ~firstcoldone THEN BEGIN
+              deglitchinfo = ITERMAP_SETUPDEGLITCH( tods, SUCCESS=ssuccess,$
+                                                    ERRMSG=errmsg )
+              IF ssuccess EQ 0b THEN BEGIN
+                 success = 0b
+                 errmsg = "Error setting up deglitch structure: "+errmsg
+                 RETURN
+              ENDIF
+           ENDIF
+
+           ;; calculate offsets, gains and weights
+           ITERMAP_CALCWEIGHTS, mapparam, tods, x_ptrs, y_ptrs, $
+                                boloind, map, $
+                                dooffs, dogain, doclip, clipsigma, $
+                                offsets, gains, weights, ntermsbyscan, $
+                                excludemask, min_scanfrac, grow_clip, $
+                                BADBOLOS=badbolos, VERBOSE=verbose
+           ;; make map
+           ITERMAP_MAKEMAP, mapparam, tods, x_ptrs, y_ptrs, $
+                            boloind, map, offsets, gains, weights, dowght, $
+                            doclip, clipsigma, min_hits, ntermsbyscan, $
+                            excludemask, min_scanfrac, grow_clip, $
+                            GETDEGLITCH=getdeglitch, $
+                            DEGLITCHINFO=deglitchinfo,$
+                            GLITCHSAMPLES=glitchsamples,$
+                            PROPERROR=properror, BADBOLOS=badbolos, $
+                            SUCCESS=success, ERRMSG=errmsg, VERBOSE=verbose
+
+           IF ~success THEN BEGIN
+              MESSAGE, errmsg, /INF
+              RETURN
+           ENDIF
+
+           ;; store map cubes, if requested
+           IF dosavemaps THEN BEGIN
+              imagecube[*,*,iter] = map.image
+              errorcube[*,*,iter] = map.error
+              hitscube[*,*,iter]  = map.exposure
+           ENDIF
+
+           IF dosaveparams THEN BEGIN
+              offscube[*,*,*,iter] = offsets
+              wghtscube[*,*,iter] = weights
+              gainscube[0,*,iter] = gains
+           ENDIF
+
+        ENDFOR                  ; end loop over map iterations
+        
+        ;; write saved maps to file
+        IF dosavemaps THEN BEGIN
+           IF KEYWORD_SET(verbose) THEN MESSAGE, "Saving map cubes", /INF
+           
+           filename = savemapdir + diagmapspre + $
+                      exname + "_" + map.names + ".fits"
+
+           maphead = ITERMAP_MAKEHEADER(map, niter, first_offs, $
+                                        first_gain, first_wt, fixed_nt, $
+                                        nterms, nt_scale, min_hits,$
+                                        first_clip, clipsigma, grow_clip)
+           
+           MKHDR, mainhead, 0B, /EXTEND
+           
+           ;; load extension names
+           SXADDPAR, mainhead, "NUMEXTEN", 3
+           SXADDPAR, mainhead, "EXTEN01", "image   "
+           SXADDPAR, mainhead, "EXTEN02", "error   "
+           SXADDPAR, mainhead, "EXTEN03", "exposure"
+           
+           WRITEFITS, filename, 0B, mainhead
+
+           SXADDPAR, maphead, "EXTNAME", "image   "
+           ;;FXWRITE, filename, maphead, imagecube, /APPEND
+           MWRFITS, imagecube, filename, maphead
+           
+           IF KEYWORD_SET(PROPERR) THEN $
+              errtype = "PROPAGAT" $
+           ELSE $
+              errtype = "SAMPLE  "
+
+           SXADDPAR, maphead, "EXTNAME", "error   "
+           SXADDPAR, maphead, "ERRTYPE", errtype
+           ;;FXWRITE, filename, maphead, errorcube, /APPEND
+           MWRFITS, errorcube, filename, maphead
+           SXDELPAR, maphead, "ERRTYPE"
+           
+           SXADDPAR, maphead, "EXTNAME", "exposure"
+           SXADDPAR, maphead, "BITPIX", 32
+           ;;FXWRITE, filename, maphead, hitscube, /APPEND
+           MWRFITS, hitscube, filename, maphead
+        ENDIF
+
+        IF dosaveparams THEN BEGIN
+           IF KEYWORD_SET(verbose) THEN MESSAGE, "Saving param cubes", /INF
+           
+           filename = savemapdir + diagparamspre + $
+                      ;exname + map.names + ".fits"
+                      exname + "_" + map.names + ".fits"
+
+           MKHDR, mainhead, 0B, /EXTEND
+           
+                                ; load extension names
+           SXADDPAR, mainhead, "NUMEXTEN", nterms+2
+           SXADDPAR, mainhead, "EXTEN01", "weights "
+           SXADDPAR, mainhead, "EXTEN02", "gains   "
+           FOR k=0,nterms-1 DO $
+              SXADDPAR, mainhead, "EXTEN"+STRING(k+3, FORMAT='(I02)'), $
+                        "offs"+STRING(k, '(I02)')
+
+           ;; load bolo names
+           FOR b=0,nchans-1 DO $
+              SXADDPAR, mainhead, "BOLO"+STRING(b+1, FORMAT='(I03)'), $
+                        first_tod.chan[boloind[b]]
+
+           FXWRITE, filename, mainhead
+
+           FXHMAKE, head1, wghtscube, /XTENSION
+           SXADDPAR, head1, "EXTNAME", "weights"
+           FXWRITE, filename, head1, wghtscube, /APPEND
+           
+           FXHMAKE, head2, gainscube, /XTENSION
+           SXADDPAR, head2, "EXTNAME", "gains"
+           FXWRITE, filename, head2, gainscube, /APPEND
+           
+           FXHMAKE, head3, REFORM(offscube[*,*,0,*]), /XTENSION
+           FOR k=0,nterms-1 DO BEGIN
+              SXADDPAR, head3, "EXTNAME", "offs"+STRING(k, '(I02)')
+              FXWRITE, filename, head3, REFORM(offscube[*,*,k,*]), /APPEND
+           ENDFOR
+
+        ENDIF
+     ENDELSE ;; end fixedparams else statement
+
+     CASE icol OF
+        0: map250 = map
+        1: map350 = map
+        2: map500 = map
+     ENDCASE
+     firstcoldone = 1b
+
+  ENDFOR ;; end loop over bands
+
+  IF doclip AND ARG_PRESENT(deglitchinfo) THEN BEGIN
+     ;;Add glitch samples into deglitchinfo
+     deglitchinfo.nglitches = N_ELEMENTS(glitchsamples)
+     IF deglitchinfo.nglitches GT 0 THEN $
+        deglitchinfo = CREATE_STRUCT(deglitchinfo,'samples',$
+                                     TEMPORARY(glitchsamples))
+  ENDIF
+
+  ;; if we got this far, we wrote three
+  ;; maps out and have nothing more to do
+  success=1b
+  PTR_FREE, x_ptrs, y_ptrs
+
+  RETURN
+
+  err_handler:
+  success = 0b
+  IF KEYWORD_SET(verbose) THEN MESSAGE,errmsg,/INF
+  PTR_FREE, x_ptrs, y_ptrs
+  RETURN
+
+
+END

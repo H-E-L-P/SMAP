@@ -1,0 +1,108 @@
+;+
+; SMAP_RUNALL_ASTROM, /ONE, /TWO, /THREE, /FOUR
+;
+; Run SMAP_AOR_ASTROM on all fields.
+;
+; Options ONE, TWO, THREE, FOUR are for divided up the fields into batches,
+; for processing on multiple nodes. If none are set, all segments are run.
+;
+;
+; CREATED BY G. Marsden 2011-02-25
+;
+; CHANGELOG
+;   20110303 (GM) change location of astromoffsets
+;   20110309 (GM) change location of astrometry
+;   20110315 (GM) update to L1g
+;   20110321 (GM) add one/two/three/four
+;   20110323 (GM) add goodrad/goodfrac params to pass through to stack_thumb
+;                 change thumbsize from 41 to 35
+;-
+
+PRO SMAP_RUNALL_ASTROM, ONE=one, TWO=two, THREE=three, FOUR=four
+
+aormapbasedir = "/data/spire/aormaps"
+<<<<<<< .mine
+aormapdate    = '20110623'
+=======
+aormapdate    = '20110712'
+>>>>>>> .r683
+dataversion   = 'ntL1g'
+srccatdir     = "/data/spire/ancillary/cats/formatted"
+offsetsdir    = "/data/spire/astromoffsets"
+thumbsize     = 25 ; size of thumbnail map (in pixels)
+goodrad       = 4
+goodfrac      = 0.9
+
+;;Field list; please keep in sync with createmap_run_aormaps
+;; (which means keep s: identical)
+fields = $
+   [ $
+   {f:"abell0370",     c:"a0370_24um.dat",   n:"A370",              s:3}, $
+   {f:"abell1689",     c:"a1689_24um.dat",   n:"A1689_new",         s:1}, $
+   {f:"abell1835",     c:"a1835_24um.dat",   n:"A1835",             s:3}, $
+   {f:"abell2218",     c:"abell2218_24.dat", n:"Abell2218",         s:2}, $
+   {f:"abell2219",     c:"a2219_24um.dat",   n:"Abell2219",         s:2}, $
+   {f:"abell2390",     c:"a2390_24um.dat",   n:"Abell2390",         s:2}, $
+   {f:"adfs",          c:"adfs_24.dat",      n:"ADFS",              s:0}, $
+   {f:"bootes",        c:"bootes_24.dat",    n:"BooSp",             s:2}, $
+   {f:"cdfs-swire",    c:"cdfs_24.dat",      n:"CDFS-SWIRE",        s:3}, $
+   {f:"cl0024",        c:"cl0024_24um.dat",  n:"Cl0024+16",         s:2}, $
+   {f:"cosmos",        c:"cosmos_24.dat",    n:"COSMOS",            s:1}, $
+   {f:"ecdfs",         c:"cdfs_24.dat",      n:"ECDFS",             s:1}, $
+   {f:"egroth",        c:"egs_24.dat",       n:"EGroth",            s:1}, $
+   {f:"egs-scuba",     c:"egs_24.dat",       n:"EGS-SCUBA",         s:3}, $
+   {f:"elais-n1",      c:"elaisn1_24.dat",   n:"ELAIS-N1-SCUBA",    s:3}, $
+   {f:"elais-n2",      c:"elaisn2_24.dat",   n:"ELAIS-N2-SWIRE",    s:2}, $
+   {f:"elais-s1",      c:"elaiss1_24.dat",   n:"ELAIS-S1-NewSWIRE", s:1}, $
+   {f:"fls",           c:"fls_24.dat",       n:"FLS",               s:2}, $
+   {f:"goodsn",        c:"goodsn_24.dat",    n:"GOODS-N",           s:0}, $
+   {f:"goodss",        c:"cdfs_24.dat",      n:"GOODS-S",           s:1}, $
+   {f:"lockman-east",  c:"lockswire_24.dat", n:"Lockman-East",      s:3}, $
+   {f:"lockman-north", c:"lockdeep_24.dat",  n:"LockmanNorth",      s:0}, $
+   {f:"lockman-swire", c:"lockswire_24.dat", n:"LockmanSw",         s:2}, $
+   {f:"ms0451",        c:"ms0451_24um.dat",  n:"MS0451.6-0305",     s:3}, $
+   {f:"ms1054",        c:"ms1054_24um.dat",  n:"MS1054.4-0321",     s:0}, $
+   {f:"ms1358",        c:"ms1358_24um.dat",  n:"MS1358+62",         s:1}, $
+   {f:"rxj0152",       c:"rxj0152_24um.dat", n:"RXJ0152.7-1357",    s:0}, $
+   {f:"rxj1347",       c:"rxj1347_24um.dat", n:"RXJ13475-1145",     s:1}, $
+   {f:"s1-video",      c:"elaiss1_24.dat",   n:"S1_video-1",        s:0}, $
+   {f:"uds",           c:"xmm_24.dat",       n:"UDS",               s:1}, $
+   {f:"vvds",          c:"xmm_24.dat",       n:"VVDS",              s:0}, $
+   {f:"xmm-lss",       c:"xmm_24.dat",       n:"XMM-LSS",           s:0} $
+   ]
+
+nseg = 4
+
+; turn off all segments to begin
+do_segment = BYTARR(nseg)
+
+IF KEYWORD_SET(one)   THEN do_segment[0] = 1B
+IF KEYWORD_SET(two)   THEN do_segment[1] = 1B
+IF KEYWORD_SET(three) THEN do_segment[2] = 1B
+IF KEYWORD_SET(four)  THEN do_segment[3] = 1B
+
+; if none turned on, do all
+IF TOTAL(do_segment) EQ 0 THEN do_segment = REPLICATE(1B, nseg)
+
+; loop over segments
+FOR iseg=0,nseg-1 DO BEGIN
+    IF do_segment[iseg] EQ 0 THEN CONTINUE
+
+    find = WHERE(fields.s EQ iseg, nf)
+    IF nf EQ 0 THEN CONTINUE
+
+    ; loop over fields
+    FOR i=0,nf-1 DO BEGIN
+
+        tf = fields[find[i]]
+        mapdir = ADDSLASH(aormapbasedir) + ADDSLASH(aormapdate) + tf.f
+        srccatfile = ADDSLASH(srccatdir) + tf.c
+        outfile = ADDSLASH(offsetsdir) + tf.n + "_" + dataversion + ".dat"
+
+        SMAP_AOR_ASTROM, mapdir, srccatfile, outfile, thumbsize, $
+                         GOODRAD=goodrad, GOODFRAC=goodfrac
+
+    ENDFOR
+ENDFOR
+
+END
