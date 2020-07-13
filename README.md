@@ -1,4 +1,4 @@
-# ![HELP LOGO](https://avatars1.githubusercontent.com/u/7880370?s=75&v=4) HELP DMU product repository
+# ![HELP LOGO](https://avatars1.githubusercontent.com/u/7880370?s=75&v=4) HELP SMAP product repository
 
 
 This repository contains the SMAP pipeline.  
