@@ -1,5 +1,8 @@
 # ![HELP LOGO](https://avatars1.githubusercontent.com/u/7880370?s=75&v=4) HELP SMAP repository
 
+Documentation on how to instal and use SMAP can be found in the docs folders or [here](https:/herschel.sussex.ac.uk/SMAP)
+
+_____________________________________
 
 This repository contains the SMAP pipeline.  
 This svn archive will contain the SMAP code base.
