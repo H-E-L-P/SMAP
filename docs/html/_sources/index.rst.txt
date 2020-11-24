@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. image:: images/Help_logo.png
+.. image:: ./images/Help_logo.png
 
 SMAP: The HerMES Herschel SPIRE Map making tool
 ===============================================
@@ -16,9 +16,9 @@ SMAP was originally developed as part of the Herschel Extragalatic Multi-Tiered 
 The research leading to this tool has received funding from the European Union Seventh Framework Programme FP7/2007-2013/ under grant agreement no.607254.
 The documentation reflects only the author's view and the European Union is not responsible for any use that may be made of the information contained therein.
 
-.. image:: images/sussex.jpg
+.. image:: ./images/sussex.jpg
     :width: 30 %
-.. image:: images/logo_en.gif
+.. image:: ./images/logo_en.gif
     :width: 30 %
 
 
