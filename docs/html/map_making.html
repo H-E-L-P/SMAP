@@ -1,0 +1,294 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>SMAP details &mdash; SMAP 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+    <link rel="prev" title="SMAP: The HerMES Herschel SPIRE Map making tool" href="index.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> SMAP
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SMAP details</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#standard-maps">Standard maps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#complementary-maps">Complementary maps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#additional-notes">Additional Notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">QuickStart</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SMAP</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>SMAP details</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/map_making.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="smap-details">
+<h1>SMAP details<a class="headerlink" href="#smap-details" title="Permalink to this headline">¶</a></h1>
+<p>HerMES maps are created by the SMAP pipeline. The SMAP map-maker iteratively
+removes a low-order polynomial baseline from each scan. At each iteration
+<span class="math notranslate nohighlight">\(i\)</span> a polynomial is fit to the time-stream residual <span class="math notranslate nohighlight">\(R_i = S - M_{i-1}\)</span>, where <span class="math notranslate nohighlight">\(S\)</span> is
+the time stream and <span class="math notranslate nohighlight">\(M_{i-1}\)</span> is the predicted time stream given the map
+calculated on the previous iteration. Additionally, each scan is given a weight
+based on the inverse variance of the time-stream residual. The order or the
+polynomial baseline varies from 0 to 9, depending on the scan length, with
+longer scans requiring higher order polynomials. The polynomial order is chosen
+using an automated algorithm which is only a function of the scan length. These
+maps are made with 20 iterations, which appears to provide sufficient
+convergence. The mapping algorithm is described in [3] and [4].</p>
+<div class="section" id="standard-maps">
+<h2>Standard maps<a class="headerlink" href="#standard-maps" title="Permalink to this headline">¶</a></h2>
+<p>Each fits file in this data release contains 4 extensions:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>signal map [Jy / beam]</li>
+<li>error map, based on propagation of time-stream weights [Jy / beam]</li>
+<li>exposure map [sec]</li>
+<li>mask map with the following values:</li>
+</ol>
+<blockquote>
+<div><ul class="simple">
+<li>0: no mask (ie good data)</li>
+<li>1: regions with low depth relative to the rest of the map</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</div>
+<div class="section" id="complementary-maps">
+<h2>Complementary maps<a class="headerlink" href="#complementary-maps" title="Permalink to this headline">¶</a></h2>
+<p>As well as the standard map output files, SMAP can produce complementary maps, which may be useful for certain projects
+(e.g. map based statistics):</p>
+<ul class="simple">
+<li>ang1:   sub-map made from all scans in one orientation on sky (eg horizontal)</li>
+<li>ang2:   sub-map made from all scans in other orientation on sky (eg vertical)</li>
+<li>bolo1:  sub-map half of detectors in focal plane</li>
+<li>bolo2:  sub-map other half of detectors in focal plane</li>
+<li>half1:  sub-map made from first half (in time) of data</li>
+<li>half2:  sub-map made from second half (in time) of data</li>
+<li>subfield: e.g., UDS for XMM-LSS-NEST.  Only contains data for a particular AOR set.</li>
+</ul>
+<p>In some fields, there is more than one set of rotation angles. Here, we provide,
+e.g., ang1a/ang2a and ang1b/ang2b jack-knife maps where possible.</p>
+<p>The complementary maps are not iterated, but simply use the offset and weights
+solution calculated for the full “image” map, as well as the cosmic ray
+information.</p>
+</div>
+<div class="section" id="additional-notes">
+<h2>Additional Notes<a class="headerlink" href="#additional-notes" title="Permalink to this headline">¶</a></h2>
+<p>Changes to the SMAP algorithm as described in [3] and [4] compared with the
+DR1 release:</p>
+<ul class="simple">
+<li>The algorithm for the temperature-correlation removal has been modified
+slightly to use more robust fitting.</li>
+<li>One must use a full implementation of the WCS specification to use the
+astrometry for these (and all previous) SMAP maps. In particular, for far
+northern or southern fields, LATPOLE and LONPOLE do not have their standard
+values to reduce field distortion. Currently, this only affects the GOODS-N
+and MS1358 fields.</li>
+</ul>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p>[1] Oliver, S.~J., Bock, J., et al. 2012, MNRAS, 424, 1614</p>
+<p>[2] Chapin, E.L., et al. 2011, MNRAS, 411, 505</p>
+<p>[3] Levenson, L., Marsden, G., Zemcov, M., et al. 2010, MNRAS, 409, 83</p>
+<p>[4] Viero, M., et al. 2013, ApJ, 772, 77</p>
+<p>[5] Viero, M., et al. 2014, ApJS, 210, 22</p>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="SMAP: The HerMES Herschel SPIRE Map making tool" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Peter Hurley
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

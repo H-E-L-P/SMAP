@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SMAP: The HerMES Herschel SPIRE Map making tool &mdash; SMAP 1.0 documentation</title>
+  <title>QuickStart &mdash; SMAP 1.0 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="SMAP details" href="map_making.html" /> 
+    <link rel="prev" title="Installation" href="installation.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -47,7 +47,7 @@
           
 
           
-            <a href="#" class="icon icon-home"> SMAP
+            <a href="index.html" class="icon icon-home"> SMAP
           
 
           
@@ -78,10 +78,12 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="map_making.html">SMAP details</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quick_start.html">QuickStart</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">QuickStart</a><ul class="simple">
+</ul>
+</li>
 </ul>
 
             
@@ -96,7 +98,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">SMAP</a>
+          <a href="index.html">SMAP</a>
         
       </nav>
 
@@ -125,15 +127,15 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="#">Docs</a> &raquo;</li>
+      <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>SMAP: The HerMES Herschel SPIRE Map making tool</li>
+      <li>QuickStart</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/quick_start.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -146,41 +148,33 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <img alt="_images/Help_logo.png" src="_images/Help_logo.png" />
-<div class="section" id="smap-the-hermes-herschel-spire-map-making-tool">
-<h1>SMAP: The HerMES Herschel SPIRE Map making tool<a class="headerlink" href="#smap-the-hermes-herschel-spire-map-making-tool" title="Permalink to this headline">¶</a></h1>
-<p>SMAP was originally developed as part of the Herschel Extragalatic Multi-Tiered Survey. As part of the Herschel Extragalatic Legacy Project, we provide the SMAP software with documentaiton</p>
+  <div class="section" id="quickstart">
+<h1>QuickStart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
+<p>SMAP uses configuration files to produce maps for each field, and example used by HerMES and HELP cabe be found in the
+conffiles subdirectory, within the smap_pipeline folder. The configuration files can contain numerous inputs, with the
+most common described below:</p>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">Describe inputs to conffile</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">you can use the pixsize keyword to change resolution of maps, e.g. to make 1 arcsecond maps you would add</p>
+</div>
+<p>pixsize=1 1 1</p>
+<p>Before making a map, you will need to download the relevant timelines for the field of
+interest (as explained during installation).</p>
+<p>Once downloaded, you can use the configuration files to remake the HerMES maps. The example_mapmaker.csh shell script
+can be used to launch the mapmaker, by editing conffiles/xmm13hr.conf to your chosen configuration file on the line:</p>
+<div class="highlight-bash notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="nb">echo</span> <span class="s1">&#39;create_itermap_from_conf, &quot;conffiles/xmm13hr.conf&quot;&#39;</span> &gt; tmp_idl.pro
+</pre></div>
+</td></tr></table></div>
+<p>Once edited, you can simply call the shell script and SMAP should be launched and make your chosen map.</p>
+<div class="highlight-bash notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="nb">source</span> example_mapmaker.csh
+</pre></div>
+</td></tr></table></div>
 <div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="map_making.html">SMAP details</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="map_making.html#standard-maps">Standard maps</a></li>
-<li class="toctree-l2"><a class="reference internal" href="map_making.html#complementary-maps">Complementary maps</a></li>
-<li class="toctree-l2"><a class="reference internal" href="map_making.html#additional-notes">Additional Notes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="map_making.html#references">References</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#directory-structure">Directory Structure</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="quick_start.html">QuickStart</a><ul class="simple">
-</ul>
-</li>
-</ul>
 </div>
-<p>The research leading to this tool has received funding from the European Union Seventh Framework Programme FP7/2007-2013/ under grant agreement no.607254.
-The documentation reflects only the author’s view and the European Union is not responsible for any use that may be made of the information contained therein.</p>
-<a class="reference internal image-reference" href="_images/sussex.jpg"><img alt="_images/sussex.jpg" src="_images/sussex.jpg" style="width: 30%;" /></a>
-<a class="reference internal image-reference" href="_images/logo_en.gif"><img alt="_images/logo_en.gif" src="_images/logo_en.gif" style="width: 30%;" /></a>
-</div>
-<div class="section" id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
-<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
-<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
-</ul>
 </div>
 
 
@@ -191,8 +185,8 @@ The documentation reflects only the author’s view and the European Union is no
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="map_making.html" class="btn btn-neutral float-right" title="SMAP details" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
+        <a href="installation.html" class="btn btn-neutral" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
