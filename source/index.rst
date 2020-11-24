@@ -13,6 +13,10 @@ SMAP was originally developed as part of the Herschel Extragalatic Multi-Tiered 
    :maxdepth: 2
    :caption: Contents:
 
+   map_making
+   installation
+   quick_start
+
 The research leading to this tool has received funding from the European Union Seventh Framework Programme FP7/2007-2013/ under grant agreement no.607254.
 The documentation reflects only the author's view and the European Union is not responsible for any use that may be made of the information contained therein.
 
