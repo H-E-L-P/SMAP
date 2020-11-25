@@ -1,6 +1,6 @@
 # ![HELP LOGO](https://avatars1.githubusercontent.com/u/7880370?s=75&v=4) HELP SMAP repository
 
-Documentation on how to instal and use SMAP can be found in the docs folders or [here](https:/herschel.sussex.ac.uk/SMAP)
+Documentation on how to instal and use SMAP can be found in the docs folders or [here](https://herschel.sussex.ac.uk/SMAP)
 
 _____________________________________
 
