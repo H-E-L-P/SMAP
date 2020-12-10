@@ -6,8 +6,7 @@ most common described below:
 
 .. todo:: Describe inputs to conffile
 
-.. note:: you can use the pixsize keyword to change resolution of maps, e.g. to make 1 arcsecond maps you would add
-pixsize=1 1 1
+.. note:: you can use the pixsize keyword to change resolution of maps, e.g. to make 1 arcsecond maps you would add pixsize=1 1 1
 
 Before making a map, you will need to download the relevant timelines for the field of
 interest (as explained during installation).
@@ -21,7 +20,7 @@ can be used to launch the mapmaker, by editing conffiles/xmm13hr.conf to your ch
     echo 'create_itermap_from_conf, "conffiles/xmm13hr.conf"' > tmp_idl.pro
 
 
-Once edited, you can simply call the shell script and SMAP should be launched and make your chosen map.
+Once edited, you can simply call the shell script and SMAP should automatically launch and make your chosen map.
 
 .. code-block:: bash
     :linenos:
