@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SMAP details &mdash; SMAP 1.0 documentation</title>
+  <title>Key People and References &mdash; SMAP 1.0 documentation</title>
   
 
   
@@ -28,8 +28,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Installation" href="installation.html" />
-    <link rel="prev" title="SMAP: The HerMES Herschel SPIRE Map making tool" href="index.html" /> 
+    <link rel="prev" title="QuickStart" href="quick_start.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -80,18 +79,13 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">SMAP details</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#standard-maps">Standard maps</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#complementary-maps">Complementary maps</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#additional-notes">Additional Notes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#references">References</a><ul class="simple">
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="map_making.html">SMAP details</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quick_start.html">QuickStart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="references.html">Key People and References</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Key People and References</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
 </ul>
 
             
@@ -137,13 +131,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>SMAP details</li>
+      <li>Key People and References</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/map_making.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/references.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -156,72 +150,24 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="smap-details">
-<h1>SMAP details<a class="headerlink" href="#smap-details" title="Permalink to this headline">¶</a></h1>
-<p>HerMES maps are created by the SMAP pipeline. The SMAP map-maker iteratively
-removes a low-order polynomial baseline from each scan. At each iteration
-<span class="math notranslate nohighlight">\(i\)</span> a polynomial is fit to the time-stream residual <span class="math notranslate nohighlight">\(R_i = S - M_{i-1}\)</span>, where <span class="math notranslate nohighlight">\(S\)</span> is
-the time stream and <span class="math notranslate nohighlight">\(M_{i-1}\)</span> is the predicted time stream given the map
-calculated on the previous iteration. Additionally, each scan is given a weight
-based on the inverse variance of the time-stream residual. The order or the
-polynomial baseline varies from 0 to 9, depending on the scan length, with
-longer scans requiring higher order polynomials. The polynomial order is chosen
-using an automated algorithm which is only a function of the scan length. These
-maps are made with 20 iterations, which appears to provide sufficient
-convergence. The mapping algorithm is described in [3] and [4].</p>
-<div class="section" id="standard-maps">
-<h2>Standard maps<a class="headerlink" href="#standard-maps" title="Permalink to this headline">¶</a></h2>
-<p>Each fits file in this data release contains 4 extensions:</p>
-<blockquote>
-<div><ol class="arabic simple">
-<li>signal map [Jy / beam]</li>
-<li>error map, based on propagation of time-stream weights [Jy / beam]</li>
-<li>exposure map [sec]</li>
-<li>mask map with the following values:</li>
-</ol>
-<blockquote>
-<div><ul class="simple">
-<li>0: no mask (ie good data)</li>
-<li>1: regions with low depth relative to the rest of the map</li>
-</ul>
-</div></blockquote>
-</div></blockquote>
-</div>
-<div class="section" id="complementary-maps">
-<h2>Complementary maps<a class="headerlink" href="#complementary-maps" title="Permalink to this headline">¶</a></h2>
-<p>As well as the standard map output files, SMAP can produce complementary maps, which may be useful for certain projects
-(e.g. map based statistics):</p>
+  <div class="section" id="key-people-and-references">
+<h1>Key People and References<a class="headerlink" href="#key-people-and-references" title="Permalink to this headline">¶</a></h1>
+<p>Numerous people, from many international institutions have contributed to the development of SMAP. Key people are named
+below <a class="footnote-reference" href="#f1" id="id1">[1]</a> with their instititions at time of SMAP development/.</p>
 <ul class="simple">
-<li>ang1:   sub-map made from all scans in one orientation on sky (eg horizontal)</li>
-<li>ang2:   sub-map made from all scans in other orientation on sky (eg vertical)</li>
-<li>bolo1:  sub-map half of detectors in focal plane</li>
-<li>bolo2:  sub-map other half of detectors in focal plane</li>
-<li>half1:  sub-map made from first half (in time) of data</li>
-<li>half2:  sub-map made from second half (in time) of data</li>
-<li>subfield: e.g., UDS for XMM-LSS-NEST.  Only contains data for a particular AOR set.</li>
+<li><strong>L. Levenson</strong>, <em>California Institute of Technology, 1200 E. California Blvd, Pasadena, CA 91125, USA, Jet Propulsion Laboratory, 4800 Oak Grove Drive, Pasadena, CA 91109, USA</em></li>
+<li><strong>G. Marsden</strong>, <em>Department of Physics &amp; Astronomy, University of British Columbia, 6224 Agricultural Road, Vancouver, BC V6T 1Z1, Canada</em></li>
+<li><strong>M. Zemcov</strong>, <em>California Institute of Technology, 1200 E. California Blvd, Pasadena, CA 91125, USA, Jet Propulsion Laboratory, 4800 Oak Grove Drive, Pasadena, CA 91109, USA</em></li>
+<li><strong>A. Amblard</strong>, <em>Department of Physics &amp; Astronomy, University of California, Irvine, CA 92697, USA</em></li>
+<li><strong>A. Blain</strong>, <em>California Institute of Technology, 1200 E. California Blvd, Pasadena, CA 91125, USA</em></li>
+<li><strong>J. Bock</strong>, <em>California Institute of Technology, 1200 E. California Blvd, Pasadena, CA 91125, USA, Jet Propulsion Laboratory, 4800 Oak Grove Drive, Pasadena, CA 91109, USA</em></li>
+<li><strong>E. Chapin</strong>, <em>Department of Physics &amp; Astronomy, University of British Columbia, 6224 Agricultural Road, Vancouver, BC V6T 1Z1, Canada</em></li>
+<li><strong>M. Viero</strong>, <em>California Institute of Technology, 1200 East California Boulevard, Pasadena, CA 91125, USA</em></li>
+<li><strong>A. Conley</strong>, <em>Department of Astrophysical and Planetary Sciences, CASA 389-UCB, University of Colorado, Boulder, CO 80309, USA</em></li>
 </ul>
-<p>In some fields, there is more than one set of rotation angles. Here, we provide,
-e.g., ang1a/ang2a and ang1b/ang2b jack-knife maps where possible.</p>
-<p>The complementary maps are not iterated, but simply use the offset and weights
-solution calculated for the full “image” map, as well as the cosmic ray
-information.</p>
-</div>
-<div class="section" id="additional-notes">
-<h2>Additional Notes<a class="headerlink" href="#additional-notes" title="Permalink to this headline">¶</a></h2>
-<p>Changes to the SMAP algorithm as described in [3] and [4] compared with the
-DR1 release:</p>
-<ul class="simple">
-<li>The algorithm for the temperature-correlation removal has been modified
-slightly to use more robust fitting.</li>
-<li>One must use a full implementation of the WCS specification to use the
-astrometry for these (and all previous) SMAP maps. In particular, for far
-northern or southern fields, LATPOLE and LONPOLE do not have their standard
-values to reduce field distortion. Currently, this only affects the GOODS-N
-and MS1358 fields.</li>
-</ul>
-</div>
 <div class="section" id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p>If you make use of SMAP and data products, please reference one of the papers below:</p>
 <ol class="arabic simple">
 <li><a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2012MNRAS.424.1614O/abstract">Oliver, S.~J., Bock, J., et al. 2012, MNRAS, 424, 1614</a></li>
 <li><a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2011MNRAS.411..505C/abstract">Chapin, E.L., et al. 2011, MNRAS, 411, 505</a></li>
@@ -229,8 +175,13 @@ and MS1358 fields.</li>
 <li><a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2013ApJ...772...77V/abstract">Viero, M., et al. 2013, ApJ, 772, 77</a></li>
 <li><a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2014ApJS..210...22V/abstract">Viero, M., et al. 2014, ApJS, 210, 22</a></li>
 </ol>
-<div class="toctree-wrapper compound">
-</div>
+<p class="rubric">Footnotes</p>
+<table class="docutils footnote" frame="void" id="f1" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>If your name is missing, and you wish to be added, please let us know <a class="reference external" href="https://github.com/H-E-L-P/SMAP/issues/new/choose">here</a>.</td></tr>
+</tbody>
+</table>
 </div>
 </div>
 
@@ -242,10 +193,8 @@ and MS1358 fields.</li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
-      
-        <a href="index.html" class="btn btn-neutral" title="SMAP: The HerMES Herschel SPIRE Map making tool" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="quick_start.html" class="btn btn-neutral" title="QuickStart" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

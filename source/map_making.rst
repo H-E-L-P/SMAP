@@ -62,15 +62,16 @@ DR1 release:
 References
 ----------
 
-[1] Oliver, S.~J., Bock, J., et al. 2012, MNRAS, 424, 1614
+1. `Oliver, S.~J., Bock, J., et al. 2012, MNRAS, 424, 1614 <https://ui.adsabs.harvard.edu/abs/2012MNRAS.424.1614O/abstract>`_
 
-[2] Chapin, E.L., et al. 2011, MNRAS, 411, 505
+2. `Chapin, E.L., et al. 2011, MNRAS, 411, 505 <https://ui.adsabs.harvard.edu/abs/2011MNRAS.411..505C/abstract>`_
 
-[3] Levenson, L., Marsden, G., Zemcov, M., et al. 2010, MNRAS, 409, 83
+3. `Levenson, L., Marsden, G., Zemcov, M., et al. 2010, MNRAS, 409, 83 <https://ui.adsabs.harvard.edu/abs/2010MNRAS.409...83L/abstract>`_
 
-[4] Viero, M., et al. 2013, ApJ, 772, 77
+4. `Viero, M., et al. 2013, ApJ, 772, 77 <https://ui.adsabs.harvard.edu/abs/2013ApJ...772...77V/abstract>`_
 
-[5] Viero, M., et al. 2014, ApJS, 210, 22
+5. `Viero, M., et al. 2014, ApJS, 210, 22 <https://ui.adsabs.harvard.edu/abs/2014ApJS..210...22V/abstract>`_
+
 
 .. toctree::
    :maxdepth: 2
