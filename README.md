@@ -19,6 +19,9 @@ Mod: May 7, 2009, AC/MZ, A template idl startup file is in the main
  
 Mod: July 13, 2020, Added HELP logo, put README file in the parent directory, and added some hyperlinks. 
 
+Mod: December 2020, Created Documentation pages
+
+Mod: March 15 2021, add link to documentation in README
 ####################
 
 To checkout code from repository:
@@ -86,3 +89,7 @@ generic map headers, and so on.
 In addition, the idl astrolib and mpfit libraries have been included
 as part of the archive as their functionality is required and my not
 be previously installed on user's machines.
+
+
+### [Documentation pages](http://herschel.sussex.ac.uk/SMAP)
+Created with sphinx (requires Python install) and cna be found here [http://herschel.sussex.ac.uk/SMAP](http://herschel.sussex.ac.uk/SMAP)
